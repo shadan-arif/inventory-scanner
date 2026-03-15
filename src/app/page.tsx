@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { Search, ChevronRight, PackageSearch } from "lucide-react";
 
@@ -16,7 +17,10 @@ export default function ScanScreen() {
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (manualCode.trim() !== "") {
+      toast.success("Item ID entered");
       navigateToEdit(manualCode.trim());
+    } else {
+      toast.error("Please enter an item ID");
     }
   };
 

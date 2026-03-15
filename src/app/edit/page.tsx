@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 import { getItem, updateItem, updatePrice, ItemResponse } from "@/lib/api";
 import { ArrowLeft, Save, Loader2, CheckCircle2 } from "lucide-react";
 
@@ -33,9 +34,12 @@ function EditItemContent() {
         setItem(data);
         setDescription(data.name || "");
         setRetailPrice(data.retail1?.toString() || "");
+        toast.success("Item details loaded successfully");
       } catch (err) {
         console.error("Failed to fetch item:", err);
-        setError("Failed to load item information. Please try scanning again.");
+        const errorMessage = "Failed to load item information. Please try scanning again.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -50,13 +54,13 @@ function EditItemContent() {
 
     // Validation
     if (description.trim().length < 3) {
-      setError("Description must be at least 3 characters long.");
+      toast.error("Description must be at least 3 characters long.");
       return;
     }
 
     const priceNum = parseFloat(retailPrice);
     if (isNaN(priceNum) || priceNum < 0) {
-      setError("Please enter a valid numeric price.");
+      toast.error("Please enter a valid numeric price.");
       return;
     }
 
@@ -64,17 +68,21 @@ function EditItemContent() {
       setIsSaving(true);
       setError("");
 
-      // Execute both updates sequentially
+      // Execute both updates sequentially with toast promise
+      toast.loading("Updating item description...", { id: "updateToast" });
       await updateItem(item.itemId, description.trim());
+      
+      toast.loading("Updating item price...", { id: "updateToast" });
       await updatePrice(item.itemId, priceNum);
 
+      toast.success("Item updated successfully!", { id: "updateToast" });
       setSuccess(true);
       setTimeout(() => {
         router.push("/");
       }, 2000);
     } catch (err) {
       console.error("Failed to save updates:", err);
-      setError("Failed to save changes. Please try again.");
+      toast.error("Failed to save changes. Please try again.", { id: "updateToast" });
       setIsSaving(false);
     }
   };
