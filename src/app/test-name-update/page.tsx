@@ -3,14 +3,28 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 
+interface RequestPayload {
+  url: string;
+  method: string;
+  body: unknown;
+}
+
+interface ResponseData {
+  status?: number;
+  statusText?: string;
+  data?: unknown;
+  errorData?: unknown;
+  error?: string;
+}
+
 export default function TestNameUpdateScreen() {
   const [itemId, setItemId] = useState("");
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(false);
   
   // States for logging Request and Response
-  const [requestPayload, setRequestPayload] = useState<any>(null);
-  const [responseData, setResponseData] = useState<any>(null);
+  const [requestPayload, setRequestPayload] = useState<RequestPayload | null>(null);
+  const [responseData, setResponseData] = useState<ResponseData | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +49,7 @@ export default function TestNameUpdateScreen() {
     setRequestPayload({
       url: "https://25deb.catapultweboffice.com/api/batch/itemMaintenance?batch=1&apikey=...",
       method: "POST",
-      body: payload
+      body: payload as unknown
     });
 
     try {
@@ -56,11 +70,12 @@ export default function TestNameUpdateScreen() {
 
       setResponseData({ status: response.status, data: data });
       toast.success("Successfully updated item name!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Error updating item name");
+      const errorMessage = error instanceof Error ? error.message : "Error updating item name";
+      toast.error(errorMessage);
       if (!responseData) {
-          setResponseData({ error: error.message });
+          setResponseData({ error: errorMessage });
       }
     } finally {
       setLoading(false);
@@ -131,7 +146,7 @@ export default function TestNameUpdateScreen() {
             <h3 className="text-gray-400 font-semibold uppercase tracking-wider text-xs flex items-center space-x-2">
               <span>Response Data</span>
               {responseData?.status && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] ${responseData.status >= 200 && responseData.status < 300 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${(responseData.status ?? 0) >= 200 && (responseData.status ?? 0) < 300 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                   {responseData.status} {responseData.statusText}
                 </span>
               )}
@@ -140,7 +155,7 @@ export default function TestNameUpdateScreen() {
               {loading ? (
                 <span className="text-blue-400 animate-pulse">Waiting for response...</span>
               ) : responseData ? (
-                <pre className={responseData.status >= 400 || responseData.error ? "text-red-400" : "text-green-400"}>
+                <pre className={(responseData.status ?? 0) >= 400 || responseData.error ? "text-red-400" : "text-green-400"}>
                   {JSON.stringify(responseData, null, 2)}
                 </pre>
               ) : (
