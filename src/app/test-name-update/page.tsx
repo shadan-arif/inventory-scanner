@@ -43,7 +43,7 @@ export default function TestNameUpdateScreen() {
     if (useCustomPayload) {
       try {
         payload = JSON.parse(customPayloadString);
-      } catch (err) {
+      } catch {
         toast.error("Invalid JSON format in custom payload");
         return;
       }
