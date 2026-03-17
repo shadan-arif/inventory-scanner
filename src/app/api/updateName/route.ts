@@ -5,8 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const baseUrl = process.env.CATAPULT_API_BASE;
-    const apiKey = process.env.CATAPULT_API_KEY;
+    const baseUrl = "https://25deb.catapultweboffice.com";
+    const apiKey = "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
 
     if (!baseUrl || !apiKey) {
       return NextResponse.json(
