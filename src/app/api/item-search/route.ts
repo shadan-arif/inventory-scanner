@@ -35,6 +35,11 @@ export async function GET(request: NextRequest) {
         apiKey: apiKey, // ✅ FIXED
         itemSearch: itemSearch,
       },
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/xml",
+        "Connection": "keep-alive",
+      },
       timeout: 8000,
     });
 
