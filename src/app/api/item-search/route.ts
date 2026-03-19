@@ -64,9 +64,14 @@ export async function GET(request: NextRequest) {
         itemId: item.itemId || "",
         itemName: item.itemName || "",
         price: item.pricePL1 || "",
+        pricePL1: item.pricePL1 || "",
         stock: item.onHand || "",
         supplier: item.supplier || "",
         department: item.department || "",
+        lastCost: item.lastCost || "",
+        defaultSupplier: item.defaultSupplier || "",
+        defaultSupplierUnitId: item.defaultSupplierUnitId || "",
+        defaultSupplierUnitQty: item.defaultSupplierUnitQty || "",
       },
     });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
