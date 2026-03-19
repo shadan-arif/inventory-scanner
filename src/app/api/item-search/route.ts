@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
 
-const API_BASE_URL = "https://25deb.catapultweboffice.com/api/itemDetail";
-const API_KEY = "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
+// globals removed
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const itemSearch = searchParams.get("itemSearch");
+
+    const headerBaseUrl = request.headers.get("x-base-url");
+    const headerApiKey = request.headers.get("x-api-key");
+    const includeRaw = request.headers.get("x-include-raw") === "true";
+
+    const baseUrl = headerBaseUrl || "https://25deb.catapultweboffice.com";
+    const apiKey = headerApiKey || "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
 
     if (!itemSearch) {
       return NextResponse.json(
@@ -17,9 +23,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await axios.get(API_BASE_URL, {
+    const response = await axios.get(`${baseUrl}/api/itemDetail`, {
       params: {
-        apikey: API_KEY,
+        apikey: apiKey,
         itemSearch: itemSearch,
       },
       timeout: 5000,
@@ -60,6 +66,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      raw: includeRaw ? response.data : undefined,
       data: {
         itemId: item.itemId || "",
         itemName: item.itemName || "",
