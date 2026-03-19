@@ -2,20 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
 
-// globals removed
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const itemSearch = searchParams.get("itemSearch");
+
+    // ✅ SANITIZE INPUT
+    const rawItemSearch = searchParams.get("itemSearch");
+    const itemSearch = rawItemSearch?.trim();
 
     const headerBaseUrl = request.headers.get("x-base-url");
     const headerApiKey = request.headers.get("x-api-key");
     const includeRaw = request.headers.get("x-include-raw") === "true";
 
-    const baseUrl = headerBaseUrl || "https://25deb.catapultweboffice.com";
-    const apiKey = headerApiKey || "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
+    const baseUrl =
+      headerBaseUrl || "https://25deb.catapultweboffice.com";
+    const apiKey =
+      headerApiKey || "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
 
+    // ❌ EMPTY CHECK
     if (!itemSearch) {
       return NextResponse.json(
         { success: false, message: "Missing itemSearch parameter" },
@@ -23,12 +27,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log("Calling API with:", itemSearch);
+
+    // ✅ FIXED PARAM NAME (apiKey)
     const response = await axios.get(`${baseUrl}/api/itemDetail`, {
       params: {
-        apikey: apiKey,
+        apiKey: apiKey, // ✅ FIXED
         itemSearch: itemSearch,
       },
-      timeout: 5000,
+      timeout: 8000,
     });
 
     if (!response.data) {
@@ -53,9 +60,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const row = parsedData?.root?.row;
+    // ✅ HANDLE MULTIPLE STRUCTURES
+    let row =
+      parsedData?.root?.row ||
+      parsedData?.root?.rows?.row ||
+      parsedData?.rows?.row;
 
     if (!row) {
+      console.log("Parsed XML:", JSON.stringify(parsedData, null, 2));
+
       return NextResponse.json(
         { success: false, message: "Item not found" },
         { status: 404 }
@@ -73,7 +86,6 @@ export async function GET(request: NextRequest) {
         price: item.pricePL1 || "",
         pricePL1: item.pricePL1 || "",
         stock: item.onHand || "",
-        supplier: item.supplier || "",
         department: item.department || "",
         lastCost: item.lastCost || "",
         defaultSupplier: item.defaultSupplier || "",
@@ -81,7 +93,7 @@ export async function GET(request: NextRequest) {
         defaultSupplierUnitQty: item.defaultSupplierUnitQty || "",
       },
     });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   } catch (error: any) {
     console.error("External API Error:", error.message);
 
@@ -93,11 +105,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (error.response?.status === 404) {
-       return NextResponse.json(
-         { success: false, message: "Item not found" },
-         { status: 404 }
-       );
+      return NextResponse.json(
+        { success: false, message: "Item not found" },
+        { status: 404 }
+      );
     }
+
+    // ✅ LOG FULL ERROR FOR DEBUGGING
+    console.error("Full error response:", error.response?.data);
 
     return NextResponse.json(
       { success: false, message: "Failed to fetch item details" },
