@@ -10,22 +10,24 @@ export default function ScanScreenV2() {
   const router = useRouter();
   const [manualCode, setManualCode] = useState("");
   const [isFetching, setIsFetching] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const fetchItemDetails = async (id: string) => {
     setIsFetching(true);
+    setErrorMsg("");
     try {
       const response = await fetch(`/api/item-search?itemSearch=${encodeURIComponent(id)}`);
       
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("Item Not Found");
+          throw new Error("Not Found");
         }
         throw new Error("Failed to fetch item details");
       }
       
       const json = await response.json();
       if (!json.success) {
-        throw new Error(json.message === "Item not found" ? "Item Not Found" : (json.message || "Failed to fetch item details"));
+        throw new Error(json.message === "Item not found" ? "Not Found" : (json.message || "Failed to fetch item details"));
       }
 
       // Success -> Navigate to Edit Item Screen
@@ -33,7 +35,9 @@ export default function ScanScreenV2() {
 
     } catch (error) {
       const err = error as Error;
-      toast.error(err.message || "Item Not Found");
+      const message = err.message === "Item Not Found" ? "Not Found" : err.message;
+      setErrorMsg(message);
+      toast.error(message || "Not Found");
       console.error(err);
     } finally {
       setIsFetching(false);
@@ -78,18 +82,28 @@ export default function ScanScreenV2() {
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className={`h-5 w-5 ${errorMsg ? 'text-red-400' : 'text-gray-400'}`} />
               </div>
               <input
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={manualCode}
-                onChange={(e) => setManualCode(e.target.value.replace(/\D/g, ''))}
-                className="block w-full pl-11 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg bg-gray-50/50"
+                onChange={(e) => {
+                  setManualCode(e.target.value.replace(/\D/g, ''));
+                  setErrorMsg("");
+                }}
+                className={`block w-full pl-11 pr-4 py-4 border rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all font-medium text-lg bg-gray-50/50 ${
+                  errorMsg 
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500 text-red-900' 
+                    : 'border-gray-200 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900'
+                }`}
                 placeholder="Enter item ID..."
               />
             </div>
+            {errorMsg && (
+              <p className="text-red-500 text-sm font-medium mt-1 ml-1">{errorMsg}</p>
+            )}
             
             <button
               type="submit"

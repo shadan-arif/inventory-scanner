@@ -36,6 +36,7 @@ export default function V2TestScreen() {
   // Scan State
   const [manualCode, setManualCode] = useState("733599125013");
   const [isFetching, setIsFetching] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Edit State
   const [isSaving, setIsSaving] = useState(false);
@@ -57,6 +58,8 @@ export default function V2TestScreen() {
       toast.error("Please enter an item ID");
       return;
     }
+
+    setErrorMsg("");
 
     if (id === "005056184632" || id === "test") {
       setIsFetching(true);
@@ -153,7 +156,9 @@ export default function V2TestScreen() {
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Error fetching item";
-      toast.error(errorMessage);
+      const displayMsg = errorMessage.toLowerCase().includes("not found") ? "Not Found" : errorMessage;
+      setErrorMsg(displayMsg);
+      toast.error(displayMsg);
     } finally {
       setIsFetching(false);
     }
@@ -276,18 +281,28 @@ export default function V2TestScreen() {
         <form onSubmit={(e) => fetchItemDetails(manualCode, e)} className="space-y-4">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className={`h-5 w-5 ${errorMsg ? 'text-red-400' : 'text-gray-400'}`} />
             </div>
             <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
               value={manualCode}
-              onChange={(e) => setManualCode(e.target.value.replace(/\D/g, ''))}
-              className="block w-full pl-11 pr-4 py-4 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg bg-gray-50/50"
+              onChange={(e) => {
+                setManualCode(e.target.value.replace(/\D/g, ''));
+                setErrorMsg("");
+              }}
+              className={`block w-full pl-11 pr-4 py-4 border rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all font-medium text-lg bg-gray-50/50 ${
+                errorMsg 
+                  ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500 text-red-900' 
+                  : 'border-gray-200 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900'
+              }`}
               placeholder="Enter item ID..."
             />
           </div>
+          {errorMsg && (
+            <p className="text-red-500 text-sm font-medium mt-1 ml-1">{errorMsg}</p>
+          )}
           
           <button
             type="submit"
