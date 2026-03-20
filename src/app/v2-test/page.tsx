@@ -369,6 +369,43 @@ export default function V2TestScreen() {
         <section className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600 border-b border-gray-50 pb-2">Editable Fields</h2>
           <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Item ID</label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={currentData.itemId}
+                onChange={(e) => setCurrentData({ ...currentData, itemId: e.target.value.replace(/\D/g, "") })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pr-10"
+              />
+              <button
+                onClick={() => {
+                  if (originalData.itemId !== currentData.itemId) {
+                    fetchItemDetails(currentData.itemId.trim());
+                  }
+                }}
+                disabled={originalData.itemId === currentData.itemId}
+                className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                  originalData.itemId !== currentData.itemId
+                    ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                    : "text-gray-400 bg-transparent disabled:opacity-50"
+                }`}
+                title="Search new Item ID"
+              >
+                <Search size={16} />
+              </button>
+            </div>
+            <div className="text-xs pt-1">
+              {originalData.itemId !== currentData.itemId ? (
+                <div className="flex items-center text-blue-600 font-medium">
+                  <Search size={14} className="mr-1" />
+                  <span>Click search to load item: {currentData.itemId}</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Description</label>
             <input
               type="text"
@@ -421,7 +458,6 @@ export default function V2TestScreen() {
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 pb-2">Read-Only Info</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Lookup Code", val: currentData.itemId },
               { label: "Unit Cost", val: `$${parseFloat(currentData.lastCost || "0").toFixed(2)}` },
               { label: "Supplier", val: currentData.defaultSupplier || "-" },
               { label: "Supplier ID", val: currentData.defaultSupplierUnitId || "-" },

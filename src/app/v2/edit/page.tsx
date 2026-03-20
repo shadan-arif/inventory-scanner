@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { ArrowLeft, Save, Scan, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Save, Scan, CheckCircle2, XCircle, Search } from "lucide-react";
 
 interface ItemDetail {
   itemId: string;
@@ -182,6 +182,47 @@ function EditContent() {
         <section className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-widest text-blue-600 border-b border-gray-100 pb-3">Editable Fields</h2>
           
+          {/* Item ID */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Item ID</label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={currentData.itemId}
+                onChange={(e) => setCurrentData({ ...currentData, itemId: e.target.value.replace(/\D/g, "") })}
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm pr-12"
+                placeholder="Enter Item ID..."
+              />
+              <button
+                onClick={() => {
+                  if (originalData.itemId !== currentData.itemId) {
+                    router.push(`/v2/edit?itemId=${encodeURIComponent(currentData.itemId.trim())}`);
+                  }
+                }}
+                disabled={originalData.itemId === currentData.itemId}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
+                  originalData.itemId !== currentData.itemId
+                    ? "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                    : "text-gray-400 bg-transparent disabled:opacity-50"
+                }`}
+                title="Search new Item ID"
+              >
+                <Search size={18} />
+              </button>
+            </div>
+            {/* Dynamic API Preview UI */}
+            <div className="text-sm pt-1">
+              {originalData.itemId !== currentData.itemId ? (
+                <div className="flex items-center text-blue-600 font-medium">
+                  <Search size={16} className="mr-1.5" />
+                  <span>Click search to load item: {currentData.itemId}</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
           {/* Description */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Description</label>
@@ -248,13 +289,6 @@ function EditContent() {
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 pb-3">Read-Only Information</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 flex justify-between">
-                <span>Item Lookup Code</span>
-              </label>
-              <input type="text" value={currentData.itemId} disabled className="block w-full px-4 py-3 border border-gray-100 rounded-xl text-gray-500 font-medium text-sm bg-gray-50 cursor-not-allowed" />
-            </div>
-
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 flex justify-between">
                 <span>Unit Cost</span>
