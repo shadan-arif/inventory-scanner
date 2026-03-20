@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "local": "next dev -H 0.0.0.0 -p 3000 --experimental-https --experimental-https-key cert/key.pem --experimental-https-cert cert/cert.pem",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
