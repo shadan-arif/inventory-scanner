@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { Search, ChevronRight, PackageSearch } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ScanScreenV2() {
   const router = useRouter();
@@ -63,8 +64,8 @@ export default function ScanScreenV2() {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 space-y-8">
         
         <div className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
-            <PackageSearch size={32} />
+          <div className="flex justify-center mb-6">
+            <Image src="/logo.jpg" alt="Brand Logo" width={120} height={120} className="object-contain rounded-xl" priority />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Scan Item</h1>
           <p className="text-gray-500 text-sm">Scan a barcode or enter the item ID manually to view details.</p>
