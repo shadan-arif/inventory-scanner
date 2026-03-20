@@ -58,6 +58,43 @@ export default function V2TestScreen() {
       return;
     }
 
+    if (id === "005056184632" || id === "test") {
+      setIsFetching(true);
+      setResponseData(null);
+      setRequestPayload(null);
+      
+      setTimeout(() => {
+        const mockItem: ItemDetail = {
+          itemId: "005056184632",
+          itemName: "***3 CRAB FISH SAUCE CASE",
+          pricePL1: "45.0000",
+          lastCost: "36.5000",
+          defaultSupplier: "Kam Lee Yuen Trading",
+          defaultSupplierUnitId: "005056184632",
+          defaultSupplierUnitQty: "1.000",
+        };
+        setOriginalData(mockItem);
+        setCurrentData(mockItem);
+        setMode("edit");
+        setIsFetching(false);
+        setResponseData({
+          status: 200,
+          statusText: "OK",
+          data: {
+            success: true,
+            message: "Mock data loaded for testing",
+            data: mockItem
+          }
+        });
+        setRequestPayload({
+          url: "mock://local-test",
+          method: "GET"
+        });
+        toast.success("Loaded mock item data");
+      }, 500);
+      return;
+    }
+
     setIsFetching(true);
     setResponseData(null);
     setRequestPayload(null);
@@ -129,6 +166,27 @@ export default function V2TestScreen() {
     const priceChanged = originalData.pricePL1 !== currentData.pricePL1;
     if (!nameChanged && !priceChanged) return;
     
+    if (currentData.itemId === "005056184632" || currentData.itemId === "test") {
+      setIsSaving(true);
+      setResponseData(null);
+      setTimeout(() => {
+        setOriginalData(currentData);
+        setIsSaving(false);
+        toast.success("Mock changes saved successfully");
+        setResponseData({
+           status: 200,
+           statusText: "OK",
+           data: { success: true, message: "Mock changes saved" }
+        });
+        setRequestPayload({
+          url: "mock://local-save-test",
+          method: "POST",
+          body: currentData
+        });
+      }, 500);
+      return;
+    }
+
     setIsSaving(true);
     setResponseData(null);
 
@@ -238,6 +296,14 @@ export default function V2TestScreen() {
           >
             <span>{isFetching ? "Fetching..." : "Look up item"}</span>
             {!isFetching && <ChevronRight size={18} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fetchItemDetails("005056184632")}
+            className="w-full flex items-center justify-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-4 px-6 rounded-2xl transition-all active:scale-[0.98]"
+          >
+            <span>Load Sample Data (No API)</span>
           </button>
         </form>
       </div>
@@ -360,15 +426,15 @@ export default function V2TestScreen() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-gray-50 flex-col py-12">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full max-w-xl mx-auto">
         
-        {/* Dynamic Left Form Container */}
+        {/* Dynamic Form Container */}
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 flex flex-col justify-start h-fit">
           {mode === "scan" ? renderScanScreen() : renderEditScreen()}
         </div>
 
         {/* Right Postman-style Inspector Container */}
-        <div className="bg-gray-900 rounded-3xl shadow-xl sm:p-8 p-6 space-y-6 text-gray-300 font-mono text-xs md:text-sm overflow-hidden flex flex-col h-fit sticky top-6">
+        <div className="hidden">
           <div className="space-y-2">
             <h2 className="text-white font-bold text-lg mb-4 flex items-center justify-between">
               <div className="flex items-center">
