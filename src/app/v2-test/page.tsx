@@ -42,6 +42,10 @@ export default function V2TestScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [originalData, setOriginalData] = useState<ItemDetail | null>(null);
   const [currentData, setCurrentData] = useState<ItemDetail | null>(null);
+  const [nameError, setNameError] = useState("");
+  const [priceError, setPriceError] = useState("");
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Inspector States
   const [baseUrlOption, setBaseUrlOption] = useState("https://25deb.catapultweboffice.com");
@@ -70,7 +74,7 @@ export default function V2TestScreen() {
         const mockItem: ItemDetail = {
           itemId: "005056184632",
           itemName: "***3 CRAB FISH SAUCE CASE",
-          pricePL1: "45.0000",
+          pricePL1: "45.00",
           lastCost: "36.5000",
           defaultSupplier: "Kam Lee Yuen Trading",
           defaultSupplierUnitId: "005056184632",
@@ -143,7 +147,7 @@ export default function V2TestScreen() {
       const itemData: ItemDetail = {
         itemId: data.data.itemId || id,
         itemName: data.data.itemName || "",
-        pricePL1: data.data.pricePL1 || data.data.price || "",
+        pricePL1: (data.data.pricePL1 || data.data.price) ? parseFloat(data.data.pricePL1 || data.data.price).toFixed(2) : "",
         lastCost: data.data.lastCost || "",
         defaultSupplier: data.data.defaultSupplier || "",
         defaultSupplierUnitId: data.data.defaultSupplierUnitId || "",
@@ -171,13 +175,22 @@ export default function V2TestScreen() {
     const priceChanged = originalData.pricePL1 !== currentData.pricePL1;
     if (!nameChanged && !priceChanged) return;
     
+    setNameError("");
+    setPriceError("");
+    let hasError = false;
+
     if (currentData.itemId === "005056184632" || currentData.itemId === "test") {
       setIsSaving(true);
       setResponseData(null);
       setTimeout(() => {
+        let savedStr = "";
+        if (nameChanged && priceChanged) savedStr = "Name and Price";
+        else if (nameChanged) savedStr = "Name";
+        else if (priceChanged) savedStr = "Price";
+        setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+
         setOriginalData(currentData);
         setIsSaving(false);
-        toast.success("Mock changes saved successfully");
         setResponseData({
            status: 200,
            statusText: "OK",
@@ -188,6 +201,11 @@ export default function V2TestScreen() {
           method: "POST",
           body: currentData
         });
+        setShowSuccessOverlay(true);
+        setTimeout(() => {
+          setShowSuccessOverlay(false);
+          handleRescan();
+        }, 2500);
       }, 500);
       return;
     }
@@ -196,58 +214,77 @@ export default function V2TestScreen() {
     setResponseData(null);
 
     const activeBaseUrl = baseUrlOption === "custom" ? customBaseUrl : baseUrlOption;
-    // execution variables removed
 
-    // We do price update as the test display (or chain them)
-    // To keep it simple in the inspector, we will log the one that gets fired last, 
-    // or log an array of requests. Let's log them sequentially.
-    
     try {
       if (priceChanged) {
-        const payload = [{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1, familyLine: "1" }];
+        try {
+          const payload = [{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1, familyLine: "1" }];
         
-        setRequestPayload({
-          url: `${activeBaseUrl}/api/batch/itemPricing`,
-          method: "POST",
-          body: payload
-        });
+          setRequestPayload({
+            url: `${activeBaseUrl}/api/batch/itemPricing`,
+            method: "POST",
+            body: payload
+          });
 
-        const res = await fetch("/api/updatePrice", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-base-url": activeBaseUrl, "x-api-key": apiKey },
-          body: JSON.stringify(payload),
-        });
+          const res = await fetch("/api/updatePrice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-base-url": activeBaseUrl, "x-api-key": apiKey },
+            body: JSON.stringify(payload),
+          });
         
-        const data = await res.json();
-        setResponseData({ status: res.status, statusText: res.statusText, data });
-        if (!res.ok) throw new Error("Price update failed");
-        toast.success("Price updated");
+          const data = await res.json().catch(() => ({}));
+          setResponseData({ status: res.status, statusText: res.statusText, data });
+          if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price update failed");
+        } catch (error) {
+          const err = error as Error;
+          setPriceError(err.message || "Price update failed");
+          hasError = true;
+        }
       }
 
       if (nameChanged) {
-        const payload = [{ action: "U", itemId: currentData.itemId, name: currentData.itemName.trim(), receiptAlias: currentData.itemName.trim(), nonReturnable: true }];
+        try {
+          const payload = [{ action: "U", itemId: currentData.itemId, name: currentData.itemName.trim(), receiptAlias: currentData.itemName.trim(), nonReturnable: true }];
         
-        setRequestPayload({
-          url: `${activeBaseUrl}/api/updateName?mock=true`, // mock display url
-          method: "POST",
-          body: payload
-        });
+          setRequestPayload({
+            url: `${activeBaseUrl}/api/updateName?mock=true`,
+            method: "POST",
+            body: payload
+          });
 
-        const res = await fetch("/api/updateName", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // The updateName API current doesn't accept headers but we will log it anyway
-          body: JSON.stringify(payload),
-        });
+          const res = await fetch("/api/updateName", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json().catch(() => ({}));
         
-        if (!res.ok) throw new Error("Name update failed");
-        toast.success("Name updated");
+          if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Name update failed");
+        } catch (error) {
+          const err = error as Error;
+          setNameError(err.message || "Name update failed");
+          hasError = true;
+        }
       }
 
-      setOriginalData(currentData);
+      setIsSaving(false);
+
+      if (!hasError) {
+        let savedStr = "";
+        if (nameChanged && priceChanged) savedStr = "Name and Price";
+        else if (nameChanged) savedStr = "Name";
+        else if (priceChanged) savedStr = "Price";
+        setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+
+        setOriginalData(currentData);
+        setShowSuccessOverlay(true);
+        setTimeout(() => {
+          setShowSuccessOverlay(false);
+          handleRescan();
+        }, 2500);
+      }
     } catch (error: unknown) {
        console.error(error);
-       toast.error("Error updating item");
     } finally {
       setIsSaving(false);
     }
@@ -347,6 +384,33 @@ export default function V2TestScreen() {
           </div>
           <div className="flex items-center space-x-2">
             <button
+              type="button"
+              onClick={() => {
+                let savedStr = "";
+                const nC = originalData.itemName !== currentData.itemName;
+                const pC = originalData.pricePL1 !== currentData.pricePL1;
+                if (nC && pC) savedStr = "Name and Price";
+                else if (nC) savedStr = "Name";
+                else if (pC) savedStr = "Price";
+                setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+
+                setIsSaving(true);
+                setTimeout(() => {
+                  setIsSaving(false);
+                  setShowSuccessOverlay(true);
+                  setTimeout(() => {
+                    setShowSuccessOverlay(false);
+                    handleRescan();
+                  }, 2500);
+                }, 500);
+              }}
+              disabled={isSaving}
+              className="flex items-center space-x-1.5 px-3 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl font-medium text-sm transition-all"
+              title="Simulate successful save"
+            >
+              <span className="inline">Test Save</span>
+            </button>
+            <button
               onClick={handleRescan}
               disabled={isSaving}
               className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl font-medium text-sm transition-all"
@@ -410,21 +474,34 @@ export default function V2TestScreen() {
             <input
               type="text"
               value={currentData.itemName}
-              onChange={(e) => setCurrentData({ ...currentData, itemName: e.target.value })}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              onChange={(e) => {
+                setCurrentData({ ...currentData, itemName: e.target.value });
+                setNameError("");
+              }}
+              className={`block w-full px-3 py-2 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm bg-white shadow-sm ${
+                nameError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
             />
-            <div className="text-xs pt-1">
-              {nameChanged ? (
-                <div className="flex items-center text-green-600 font-medium">
-                  <CheckCircle2 size={14} className="mr-1" />
-                  <span>Will update to: {currentData.itemName}</span>
-                </div>
-              ) : (
-                 <div className="flex items-center text-gray-400">
-                  <XCircle size={14} className="mr-1" /><span>No changes detected</span>
-                </div>
-              )}
-            </div>
+            {nameError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{nameError}</span>
+              </div>
+            )}
+            {!nameError && (
+              <div className="text-xs pt-1">
+                {nameChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={14} className="mr-1" />
+                    <span>Will update to: {currentData.itemName}</span>
+                  </div>
+                ) : (
+                   <div className="flex items-center text-gray-400">
+                    <XCircle size={14} className="mr-1" /><span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Price ($)</label>
@@ -435,22 +512,35 @@ export default function V2TestScreen() {
               value={currentData.pricePL1}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) setCurrentData({ ...currentData, pricePL1: val });
+                if (/^\d*\.?\d*$/.test(val)) {
+                  setCurrentData({ ...currentData, pricePL1: val });
+                  setPriceError("");
+                }
               }}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className={`block w-full px-3 py-2 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm bg-white shadow-sm ${
+                priceError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
             />
-            <div className="text-xs pt-1">
-              {priceChanged ? (
-                <div className="flex items-center text-green-600 font-medium">
-                  <CheckCircle2 size={14} className="mr-1" />
-                  <span>Will update to: ${currentData.pricePL1}</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-gray-400">
-                  <XCircle size={14} className="mr-1" /><span>No changes detected</span>
-                </div>
-              )}
-            </div>
+            {priceError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{priceError}</span>
+              </div>
+            )}
+            {!priceError && (
+              <div className="text-xs pt-1">
+                {priceChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={14} className="mr-1" />
+                    <span>Will update to: ${currentData.pricePL1}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <XCircle size={14} className="mr-1" /><span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -483,6 +573,21 @@ export default function V2TestScreen() {
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 flex flex-col justify-start h-fit">
           {mode === "scan" ? renderScanScreen() : renderEditScreen()}
         </div>
+
+        {/* Success Overlay */}
+        {showSuccessOverlay && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all text-center">
+            <div className="bg-white px-8 py-10 rounded-3xl shadow-xl flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-300 transform scale-100 max-w-sm w-full mx-4">
+              <div className="bg-green-100 p-4 rounded-full">
+                <CheckCircle2 size={48} className="text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Changes Saved Successfully!</h2>
+              <p className="text-gray-500 text-center max-w-[250px]">
+                {successMessage} Redirecting back...
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Right Postman-style Inspector Container */}
         <div className="hidden">

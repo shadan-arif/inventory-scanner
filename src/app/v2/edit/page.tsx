@@ -22,6 +22,10 @@ function EditContent() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [priceError, setPriceError] = useState("");
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   
   const [originalData, setOriginalData] = useState<ItemDetail | null>(null);
   const [currentData, setCurrentData] = useState<ItemDetail | null>(null);
@@ -51,7 +55,7 @@ function EditContent() {
         const item: ItemDetail = {
           itemId: data.itemId || id,
           itemName: data.itemName || "",
-          pricePL1: data.pricePL1 || data.price || "",
+          pricePL1: (data.pricePL1 || data.price) ? parseFloat(data.pricePL1 || data.price).toFixed(2) : "",
           lastCost: data.lastCost || "",
           defaultSupplier: data.defaultSupplier || "",
           defaultSupplierUnitId: data.defaultSupplierUnitId || "",
@@ -105,39 +109,57 @@ function EditContent() {
     if (!anyChanged) return;
     
     setIsSaving(true);
-    let nameSuccess = false;
-    let priceSuccess = false;
+    setNameError("");
+    setPriceError("");
+    
+    let hasError = false;
 
-    try {
-      if (nameChanged) {
+    if (nameChanged) {
+      try {
         const res = await fetch("/api/updateName", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify([{ action: "U", itemId: currentData.itemId, name: currentData.itemName.trim(), receiptAlias: currentData.itemName.trim(), nonReturnable: true }]),
         });
-        if (!res.ok) throw new Error("Name update failed");
-        nameSuccess = true;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Name update failed");
+      } catch (error) {
+        const err = error as Error;
+        setNameError(err.message || "Name update failed");
+        hasError = true;
       }
+    }
 
-      if (priceChanged) {
+    if (priceChanged) {
+      try {
         const res = await fetch("/api/updatePrice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify([{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1, familyLine: "1" }]),
         });
-        if (!res.ok) throw new Error("Price update failed");
-        priceSuccess = true;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price update failed");
+      } catch (error) {
+        const err = error as Error;
+        setPriceError(err.message || "Price update failed");
+        hasError = true;
       }
+    }
 
-      if (nameSuccess) toast.success("Name updated");
-      if (priceSuccess) toast.success("Price updated");
+    setIsSaving(false);
+
+    if (!hasError) {
+      let savedStr = "";
+      if (nameChanged && priceChanged) savedStr = "Name and Price";
+      else if (nameChanged) savedStr = "Name";
+      else if (priceChanged) savedStr = "Price";
+      setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
 
       setOriginalData(currentData);
-    } catch (error) {
-      const err = error as Error;
-      toast.error(err.message || "Error updating item");
-    } finally {
-      setIsSaving(false);
+      setShowSuccessOverlay(true);
+      setTimeout(() => {
+        router.push("/v2");
+      }, 2500);
     }
   };
 
@@ -229,24 +251,37 @@ function EditContent() {
             <input
               type="text"
               value={currentData.itemName}
-              onChange={(e) => setCurrentData({ ...currentData, itemName: e.target.value })}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm"
+              onChange={(e) => {
+                setCurrentData({ ...currentData, itemName: e.target.value });
+                setNameError("");
+              }}
+              className={`block w-full px-4 py-3 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm ${
+                nameError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
               placeholder="Enter description..."
             />
+            {nameError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{nameError}</span>
+              </div>
+            )}
             {/* Dynamic API Preview UI */}
-            <div className="text-sm pt-1">
-              {nameChanged ? (
-                <div className="flex items-center text-green-600 font-medium">
-                  <CheckCircle2 size={16} className="mr-1.5" />
-                  <span>Will update to: {currentData.itemName}</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-gray-400">
-                  <XCircle size={16} className="mr-1.5" />
-                  <span>No changes detected</span>
-                </div>
-              )}
-            </div>
+            {!nameError && (
+              <div className="text-sm pt-1">
+                {nameChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={16} className="mr-1.5" />
+                    <span>Will update to: {currentData.itemName}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <XCircle size={16} className="mr-1.5" />
+                    <span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Price */}
@@ -261,25 +296,36 @@ function EditContent() {
                 const val = e.target.value;
                 if (/^\d*\.?\d*$/.test(val)) {
                   setCurrentData({ ...currentData, pricePL1: val });
+                  setPriceError("");
                 }
               }}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm"
+              className={`block w-full px-4 py-3 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm ${
+                priceError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
               placeholder="0.00"
             />
+            {priceError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{priceError}</span>
+              </div>
+            )}
             {/* Dynamic API Preview UI */}
-            <div className="text-sm pt-1">
-              {priceChanged ? (
-                <div className="flex items-center text-green-600 font-medium">
-                  <CheckCircle2 size={16} className="mr-1.5" />
-                  <span>Will update to: ${currentData.pricePL1}</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-gray-400">
-                  <XCircle size={16} className="mr-1.5" />
-                  <span>No changes detected</span>
-                </div>
-              )}
-            </div>
+            {!priceError && (
+              <div className="text-sm pt-1">
+                {priceChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={16} className="mr-1.5" />
+                    <span>Will update to: ${currentData.pricePL1}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <XCircle size={16} className="mr-1.5" />
+                    <span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -327,6 +373,21 @@ function EditContent() {
         </section>
 
       </div>
+
+      {/* Success Overlay */}
+      {showSuccessOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all">
+          <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center space-y-4 animate-in fade-in duration-300 transform scale-100">
+            <div className="bg-green-100 p-4 rounded-full">
+              <CheckCircle2 size={48} className="text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Changes Saved Successfully!</h2>
+            <p className="text-gray-500 text-center max-w-[250px]">
+              {successMessage} Redirecting back...
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
