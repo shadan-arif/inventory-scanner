@@ -80,7 +80,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const item = Array.isArray(row) ? row[0] : row;
+    let item = null;
+
+    if (Array.isArray(row)) {
+      item = row.find(
+        (r: any) =>
+          String(r.itemId).trim().toLowerCase() === String(itemSearch).trim().toLowerCase()
+      );
+    } else {
+      if (
+        String(row.itemId).trim().toLowerCase() === String(itemSearch).trim().toLowerCase()
+      ) {
+        item = row;
+      }
+    }
+
+    if (!item) {
+      return NextResponse.json(
+        { success: false, message: "Item not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
