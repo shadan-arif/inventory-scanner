@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Sample Data Files / Postman Logs Left Out 
+.env
 /cert
 data file.txt
 sample.txt
