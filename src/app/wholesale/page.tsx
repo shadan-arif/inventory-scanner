@@ -177,6 +177,16 @@ export default function WholesaleScannerScreen() {
               {!isFetching && <ChevronRight size={18} />}
             </button>
           </form>
+
+          {/* TEST SAMPLE BUTTON: Can be commented out in production */}
+          <div className="pt-4 border-t border-gray-100">
+            <button
+              onClick={() => router.push('/wholesale/result?itemId=005056184632&isSample=true')}
+              className="w-full flex items-center justify-center space-x-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-3 px-6 rounded-2xl transition-all active:scale-[0.98] border border-blue-200 dashed"
+            >
+              <span>Load Sample Data API Response</span>
+            </button>
+          </div>
         </div>
 
       </div>

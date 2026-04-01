@@ -19,6 +19,7 @@ function WholesaleResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawItemId = searchParams.get("itemId");
+  const isSample = searchParams.get("isSample") === "true";
 
   const [isLoading, setIsLoading] = useState(true);
   const [item, setItem] = useState<ItemDetail | null>(null);
@@ -33,31 +34,50 @@ function WholesaleResultContent() {
 
     const fetchData = async () => {
       try {
-        const [itemRes, marginRes] = await Promise.all([
-          fetch(`/api/item-search?itemSearch=${encodeURIComponent(rawItemId)}`),
+        const fetchPromises: any[] = [
           fetch("/api/wholesale/settings")
-        ]);
-        
-        if (!itemRes.ok) {
-          throw new Error("Failed to fetch item details");
-        }
-        
-        const json = await itemRes.json();
-        if (!json.success || !json.data) {
-          throw new Error(json.message || "Failed to fetch item details");
+        ];
+
+        if (!isSample) {
+           fetchPromises.unshift(fetch(`/api/item-search?itemSearch=${encodeURIComponent(rawItemId)}`));
         }
 
-        const data = json.data;
-        setItem({
-          itemId: data.itemId || rawItemId,
-          itemName: data.itemName || "",
-          pricePL1: (data.pricePL1 || data.price) ? parseFloat(data.pricePL1 || data.price).toFixed(2) : "",
-          lastCost: data.lastCost || "0",
-          defaultSupplier: data.defaultSupplier || "",
-          defaultSupplierUnitId: data.defaultSupplierUnitId || "",
-          defaultSupplierUnitQty: data.defaultSupplierUnitQty || "0",
-        });
+        const responses = await Promise.all(fetchPromises);
+        
+        // Handle Item Data
+        if (isSample) {
+          setItem({
+            itemId: "005056184632",
+            itemName: "***3 CRAB FISH SAUCE CASE",
+            pricePL1: parseFloat("45.0000").toFixed(2),
+            lastCost: "36.5000",
+            defaultSupplier: "Kam Lee Yuen Trading",
+            defaultSupplierUnitId: "005056184632",
+            defaultSupplierUnitQty: "1.000",
+          });
+        } else {
+          const itemRes = responses[0];
+          
+          if (!itemRes.ok) throw new Error("Failed to fetch item details");
+          const json = await itemRes.json();
+          if (!json.success || !json.data) throw new Error(json.message || "Failed to fetch item details");
 
+          const data = json.data;
+          setItem({
+            itemId: data.itemId || rawItemId,
+            itemName: data.itemName || "",
+            pricePL1: (data.pricePL1 || data.price) ? parseFloat(data.pricePL1 || data.price).toFixed(2) : "",
+            lastCost: data.lastCost || "0",
+            defaultSupplier: data.defaultSupplier || "",
+            defaultSupplierUnitId: data.defaultSupplierUnitId || "",
+            defaultSupplierUnitQty: data.defaultSupplierUnitQty || "0",
+          });
+        }
+
+        // Handle Margin Settings Data
+        const marginResIndex = isSample ? 0 : 1;
+        const marginRes = responses[marginResIndex];
+        
         if (marginRes.ok) {
           const mData = await marginRes.json();
           if (mData.success) {
