@@ -190,7 +190,7 @@ function WholesaleResultContent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500">Retail Unit Price</label>
+                <label className="text-xs font-semibold text-gray-500">Unit Price</label>
                 <div className="text-base font-semibold text-gray-900 bg-gray-50 border border-gray-100 rounded-xl p-3">${parseFloat(item.pricePL1 || "0").toFixed(2)}</div>
               </div>
               <div className="space-y-1">
@@ -212,20 +212,13 @@ function WholesaleResultContent() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500">Supplier ID (MPQ)</label>
+              <label className="text-xs font-semibold text-gray-500">Supplier ID</label>
               <div className="text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-100 rounded-xl p-3">{item.defaultSupplierUnitId || "-"}</div>
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-gray-500">Case Cost</label>
               <div className="text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-100 rounded-xl p-3">${caseCost.toFixed(2)}</div>
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-500">Calculation Method</label>
-              <div className="text-xs font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center h-full">
-                Case Qty ({caseQty}) × Unit Cost (${unitCost.toFixed(2)})
-              </div>
             </div>
           </div>
         </section>
