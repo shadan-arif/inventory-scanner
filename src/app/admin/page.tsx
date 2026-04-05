@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { ArrowLeft, UserPlus, Key, Users, Loader2 } from "lucide-react";
+import { ArrowLeft, UserPlus, Key, Users, Loader2, Trash2 } from "lucide-react";
 
 interface Employee {
   id: number;
@@ -30,6 +30,10 @@ export default function AdminDashboard() {
   const [passwordModalEmpId, setPasswordModalEmpId] = useState<number | null>(null);
   const [updatePassword, setUpdatePassword] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Delete Employee State
+  const [deleteModalEmpId, setDeleteModalEmpId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -113,6 +117,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteEmployee = async () => {
+    if (!deleteModalEmpId) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/employees/${deleteModalEmpId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Employee deleted successfully");
+        setDeleteModalEmpId(null);
+        fetchEmployees();
+      } else {
+        toast.error(data.error || "Failed to delete employee");
+      }
+    } catch (error) {
+      toast.error("Error deleting employee");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-12">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm px-4 py-4 flex items-center justify-between">
@@ -165,13 +191,22 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setPasswordModalEmpId(emp.id)}
-                          className="inline-flex items-center p-2 text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Change Password"
-                        >
-                          <Key size={18} />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setPasswordModalEmpId(emp.id)}
+                            className="inline-flex items-center p-2 text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                            title="Change Password"
+                          >
+                            <Key size={18} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteModalEmpId(emp.id)}
+                            className="inline-flex items-center p-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            title="Delete Employee"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -307,6 +342,40 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalEmpId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600">
+                <Trash2 size={24} />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Delete Employee?</h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to permanently delete this employee? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteModalEmpId(null)}
+                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteEmployee}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-xl font-medium transition-colors text-sm"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

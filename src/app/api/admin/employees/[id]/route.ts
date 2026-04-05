@@ -31,3 +31,30 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const token = cookies().get("ws_session")?.value;
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const targetUserId = parseInt(params.id);
+
+    // Prevent deleting oneself
+    if (payload.id === targetUserId) {
+      return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
+    }
+
+    await prisma.user.delete({
+      where: { id: targetUserId },
+    });
+
+    return NextResponse.json({ success: true, message: "Employee deleted successfully" });
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
