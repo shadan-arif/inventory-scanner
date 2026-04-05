@@ -135,6 +135,17 @@ export default function ModulesScreen() {
     },
   ];
 
+  if (user?.role === "ADMIN") {
+    modules.push({
+      id: "admin",
+      name: "Admin Panel",
+      icon: <Users size={28} className="text-purple-600" />,
+      path: "/admin",
+      active: true,
+      color: "bg-purple-50 border-purple-200 hover:border-purple-400 hover:shadow-purple-100",
+    });
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 pb-12">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm px-4 py-4 flex items-center justify-between">

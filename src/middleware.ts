@@ -31,9 +31,10 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // Role-based protection for wholesale settings
-    if (isSettingsRoute && payload.role !== "ADMIN") {
-      const url = new URL("/wholesale", request.url);
+    // Role-based protection for wholesale settings & admin module
+    const isAdminRouteUI = pathname.startsWith("/admin");
+    if ((isSettingsRoute || isAdminRouteUI) && payload.role !== "ADMIN") {
+      const url = new URL("/modules", request.url);
       return NextResponse.redirect(url);
     }
   }
