@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { ArrowLeft, UserPlus, Key, Users, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, UserPlus, Key, Users, Loader2, Trash2, Home } from "lucide-react";
 
 interface Employee {
   id: number;
@@ -145,9 +145,10 @@ export default function AdminDashboard() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/modules")}
-            className="p-2 -ml-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
+            className="p-2 -ml-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
+            title="Back to Modules"
           >
-            <ArrowLeft size={24} />
+            <Home size={24} />
           </button>
           <div className="flex flex-col">
             <h1 className="text-xl font-bold tracking-tight">Admin Dashboard</h1>

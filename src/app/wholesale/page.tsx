@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import BarcodeScanner from "@/components/BarcodeScanner";
-import { Search, ChevronRight, Settings, ArrowLeft } from "lucide-react";
+import { Search, ChevronRight, Settings, ArrowLeft, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -92,8 +92,8 @@ export default function WholesaleScannerScreen() {
     <main className="min-h-screen flex items-center justify-center p-4 bg-gray-50 flex-col relative">
       <header className="absolute top-0 w-full bg-white border-b border-gray-200 z-10 shadow-sm px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <button onClick={() => router.push("/modules")} className="p-2 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full transition-all">
-            <ArrowLeft size={20} />
+          <button onClick={() => router.push("/modules")} className="p-2 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full transition-all" title="Back to Modules">
+            <Home size={20} />
           </button>
           <h1 className="text-xl font-bold tracking-tight">Wholesale</h1>
         </div>
@@ -179,14 +179,14 @@ export default function WholesaleScannerScreen() {
           </form>
 
           {/* TEST SAMPLE BUTTON: Can be commented out in production */}
-          <div className="pt-4 border-t border-gray-100">
+          {/* <div className="pt-4 border-t border-gray-100">
             <button
               onClick={() => router.push('/wholesale/result?itemId=005056184632&isSample=true')}
               className="w-full flex items-center justify-center space-x-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium py-3 px-6 rounded-2xl transition-all active:scale-[0.98] border border-blue-200 dashed"
             >
               <span>Load Sample Data API Response</span>
             </button>
-          </div>
+          </div> */}
         </div>
 
       </div>

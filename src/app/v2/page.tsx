@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import BarcodeScanner from "@/components/BarcodeScanner";
-import { Search, ChevronRight, PackageSearch } from "lucide-react";
+import { Search, ChevronRight, PackageSearch, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -60,8 +60,19 @@ export default function ScanScreenV2() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 space-y-8">
+    <main className="min-h-screen flex items-center justify-center p-4 bg-gray-50 relative">
+      {/* Top Left Back/Home Button */}
+      <div className="absolute top-6 left-6 z-10">
+        <button
+          onClick={() => router.push("/modules")}
+          className="p-3 text-gray-500 hover:text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 rounded-2xl shadow-sm transition-all"
+          title="Back to Modules"
+        >
+          <Home size={24} />
+        </button>
+      </div>
+
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 space-y-8 mt-12 sm:mt-0">
         
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-6">
