@@ -112,7 +112,7 @@ export default function LoginScreen() {
 
           <button
             type="submit"
-            disabled={isLoading || code.length !== 4 || password.length !== 4}
+            disabled={isLoading}
             className="w-full flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 px-6 rounded-2xl transition-all active:scale-[0.98]"
           >
             {isLoading ? (

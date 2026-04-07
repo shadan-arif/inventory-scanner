@@ -8,8 +8,9 @@ export async function middleware(request: NextRequest) {
   // We are protecting everything EXCEPT:
   // - root (login page)
   // - auth APIs (/api/auth)
+  // - db test route (/api/db-test)
   // - static files and assets
-  const publicPaths = ["/", "/api/auth/login", "/api/auth/logout", "/logo.jpg"];
+  const publicPaths = ["/", "/api/auth/login", "/api/auth/logout", "/api/db-test", "/logo.jpg"];
   const isPublicRoute = publicPaths.includes(pathname);
 
   const isSettingsRoute = pathname.startsWith("/wholesale/settings");
@@ -18,6 +19,9 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get("ws_session")?.value;
 
     if (!token) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       const url = new URL("/", request.url);
       return NextResponse.redirect(url);
     }
@@ -25,8 +29,9 @@ export async function middleware(request: NextRequest) {
     const payload = await verifyToken(token);
 
     if (!payload) {
-      const url = new URL("/", request.url);
-      const response = NextResponse.redirect(url);
+      const response = pathname.startsWith("/api/") 
+        ? NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        : NextResponse.redirect(new URL("/", request.url));
       response.cookies.delete("ws_session");
       return response;
     }
