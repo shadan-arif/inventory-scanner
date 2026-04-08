@@ -13,8 +13,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     if (code.length !== 4 || password.length !== 4) {
       toast.error("Code and password must be exactly 4 digits.");
       return;
@@ -25,6 +24,7 @@ export default function LoginScreen() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, password }),
       });
@@ -33,19 +33,26 @@ export default function LoginScreen() {
 
       if (res.ok && data.success) {
         toast.success(`Welcome, ${data.user.name}!`);
-        router.push("/modules");
+        // Use window.location.href instead of router.push so the redirect
+        // works even if Next.js client-side routing isn't fully hydrated.
+        window.location.href = "/modules";
       } else {
         toast.error(data.message || "Login failed");
+        setIsLoading(false);
       }
-    } catch (error) {
-      toast.error("An error occurred during login.");
-    } finally {
+    } catch {
+      toast.error("An error occurred during login. Check your connection.");
       setIsLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <noscript>
+        <div style={{position:"fixed",top:0,left:0,right:0,background:"#dc2626",color:"#fff",textAlign:"center",padding:"8px",zIndex:9999,fontSize:"14px"}}>
+          JavaScript is disabled or blocked — login will not work. Please enable JS.
+        </div>
+      </noscript>
       <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8 p-6 space-y-8 relative overflow-hidden">
         
         {/* Admin Toggle */}
@@ -71,7 +78,7 @@ export default function LoginScreen() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
@@ -111,7 +118,8 @@ export default function LoginScreen() {
           </div>
 
           <button
-            type="submit"
+            type="button"
+            onClick={handleLogin}
             disabled={isLoading}
             className="w-full flex items-center justify-center space-x-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 px-6 rounded-2xl transition-all active:scale-[0.98]"
           >
