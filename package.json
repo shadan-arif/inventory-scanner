@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "local": "next dev -H 0.0.0.0 -p 3000 --experimental-https --experimental-https-key cert/key.pem --experimental-https-cert cert/cert.pem",
+    "netbird": "NODE_ENV=production node server.js",
+    "netbird-2": "next dev -H 0.0.0.0 -p 3000 --experimental-https --experimental-https-key cert/netbird-key.pem --experimental-https-cert cert/netbird-cert.pem",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
