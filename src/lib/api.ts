@@ -35,7 +35,6 @@ export const updatePrice = async (itemId: string, price: number) => {
       retail1: price.toString(),
       quantityOnly1: true,
       divider: 1,
-      familyLine: "1",
     },
   ];
   const response = await axios.post("/api/updatePrice", payload);

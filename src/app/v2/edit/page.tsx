@@ -135,7 +135,7 @@ function EditContent() {
         const res = await fetch("/api/updatePrice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify([{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1, familyLine: "1" }]),
+          body: JSON.stringify([{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1 }]),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price update failed");

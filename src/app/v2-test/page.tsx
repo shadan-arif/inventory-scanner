@@ -218,7 +218,7 @@ export default function V2TestScreen() {
     try {
       if (priceChanged) {
         try {
-          const payload = [{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1, familyLine: "1" }];
+          const payload = [{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1 }];
         
           setRequestPayload({
             url: `${activeBaseUrl}/api/batch/itemPricing`,
