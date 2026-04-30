@@ -44,6 +44,7 @@ export default function V2TestScreen() {
   const [currentData, setCurrentData] = useState<ItemDetail | null>(null);
   const [nameError, setNameError] = useState("");
   const [priceError, setPriceError] = useState("");
+  const [costError, setCostError] = useState("");
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -173,21 +174,26 @@ export default function V2TestScreen() {
     if (!originalData || !currentData) return;
     const nameChanged = originalData.itemName !== currentData.itemName;
     const priceChanged = originalData.pricePL1 !== currentData.pricePL1;
-    if (!nameChanged && !priceChanged) return;
+    const costChanged = originalData.lastCost !== currentData.lastCost;
+    const anyChanged = nameChanged || priceChanged || costChanged;
+    if (!anyChanged) return;
     
     setNameError("");
     setPriceError("");
+    setCostError("");
     let hasError = false;
 
     if (currentData.itemId === "005056184632" || currentData.itemId === "test") {
       setIsSaving(true);
       setResponseData(null);
       setTimeout(() => {
-        let savedStr = "";
-        if (nameChanged && priceChanged) savedStr = "Name and Price";
-        else if (nameChanged) savedStr = "Name";
-        else if (priceChanged) savedStr = "Price";
-        setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+        let savedStrArr = [];
+        if (nameChanged) savedStrArr.push("Name");
+        if (priceChanged) savedStrArr.push("Price");
+        if (costChanged) savedStrArr.push("Unit Cost");
+        
+        const savedStrFormatted = savedStrArr.join(", ");
+        setSuccessMessage(savedStrFormatted ? `Successfully updated ${savedStrFormatted}.` : "Your updates have been applied.");
 
         setOriginalData(currentData);
         setIsSaving(false);
@@ -216,17 +222,27 @@ export default function V2TestScreen() {
     const activeBaseUrl = baseUrlOption === "custom" ? customBaseUrl : baseUrlOption;
 
     try {
-      if (priceChanged) {
+      if (priceChanged || costChanged) {
         try {
-          const payload = [{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1 }];
+          const now = new Date();
+          const pad = (n: number) => n.toString().padStart(2, '0');
+          const formattedDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  
+          const payload = {
+            zoneName: "Primary Zone",
+            startDate: formattedDate,
+            itemId: currentData.itemId,
+            price1: currentData.pricePL1,
+            cost: currentData.lastCost || "0"
+          };
         
           setRequestPayload({
-            url: `${activeBaseUrl}/api/batch/itemPricing`,
+            url: `${activeBaseUrl}/api/batch/PermanentPriceCost?batch=4&appendExistingWorksheets=0&autoCommit=1`,
             method: "POST",
             body: payload
           });
 
-          const res = await fetch("/api/updatePrice", {
+          const res = await fetch("/api/updatePriceV2", {
             method: "POST",
             headers: { "Content-Type": "application/json", "x-base-url": activeBaseUrl, "x-api-key": apiKey },
             body: JSON.stringify(payload),
@@ -234,10 +250,11 @@ export default function V2TestScreen() {
         
           const data = await res.json().catch(() => ({}));
           setResponseData({ status: res.status, statusText: res.statusText, data });
-          if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price update failed");
+          if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price/Cost update failed");
         } catch (error) {
           const err = error as Error;
-          setPriceError(err.message || "Price update failed");
+          if (priceChanged) setPriceError(err.message || "Price update failed");
+          if (costChanged) setCostError(err.message || "Cost update failed");
           hasError = true;
         }
       }
@@ -270,11 +287,13 @@ export default function V2TestScreen() {
       setIsSaving(false);
 
       if (!hasError) {
-        let savedStr = "";
-        if (nameChanged && priceChanged) savedStr = "Name and Price";
-        else if (nameChanged) savedStr = "Name";
-        else if (priceChanged) savedStr = "Price";
-        setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+        let savedStrArr = [];
+        if (nameChanged) savedStrArr.push("Name");
+        if (priceChanged) savedStrArr.push("Price");
+        if (costChanged) savedStrArr.push("Unit Cost");
+        
+        const savedStrFormatted = savedStrArr.join(", ");
+        setSuccessMessage(savedStrFormatted ? `Successfully updated ${savedStrFormatted}.` : "Your updates have been applied.");
 
         setOriginalData(currentData);
         setShowSuccessOverlay(true);
@@ -367,7 +386,8 @@ export default function V2TestScreen() {
     
     const nameChanged = originalData.itemName !== currentData.itemName;
     const priceChanged = originalData.pricePL1 !== currentData.pricePL1;
-    const anyChanged = nameChanged || priceChanged;
+    const costChanged = originalData.lastCost !== currentData.lastCost;
+    const anyChanged = nameChanged || priceChanged || costChanged;
 
     const caseCostVal = (parseFloat(currentData.defaultSupplierUnitQty || "0") * parseFloat(currentData.lastCost || "0"));
     const caseCostFormatted = !isNaN(caseCostVal) ? caseCostVal.toFixed(2) : "0.00";
@@ -386,13 +406,15 @@ export default function V2TestScreen() {
             <button
               type="button"
               onClick={() => {
-                let savedStr = "";
+                let savedStrArr = [];
                 const nC = originalData.itemName !== currentData.itemName;
                 const pC = originalData.pricePL1 !== currentData.pricePL1;
-                if (nC && pC) savedStr = "Name and Price";
-                else if (nC) savedStr = "Name";
-                else if (pC) savedStr = "Price";
-                setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+                const cC = originalData.lastCost !== currentData.lastCost;
+                if (nC) savedStrArr.push("Name");
+                if (pC) savedStrArr.push("Price");
+                if (cC) savedStrArr.push("Unit Cost");
+                const savedStrFormatted = savedStrArr.join(", ");
+                setSuccessMessage(savedStrFormatted ? `Successfully updated ${savedStrFormatted}.` : "Your updates have been applied.");
 
                 setIsSaving(true);
                 setTimeout(() => {
@@ -542,13 +564,51 @@ export default function V2TestScreen() {
               </div>
             )}
           </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Unit Cost ($)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*\.?[0-9]*"
+              value={currentData.lastCost}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*\.?\d*$/.test(val)) {
+                  setCurrentData({ ...currentData, lastCost: val });
+                  setCostError("");
+                }
+              }}
+              className={`block w-full px-3 py-2 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm bg-white shadow-sm ${
+                costError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
+            />
+            {costError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{costError}</span>
+              </div>
+            )}
+            {!costError && (
+              <div className="text-xs pt-1">
+                {costChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={14} className="mr-1" />
+                    <span>Will update to: ${currentData.lastCost}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <XCircle size={14} className="mr-1" /><span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 pb-2">Read-Only Info</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Unit Cost", val: `$${parseFloat(currentData.lastCost || "0").toFixed(2)}` },
               { label: "Supplier", val: currentData.defaultSupplier || "-" },
               { label: "Supplier ID", val: currentData.defaultSupplierUnitId || "-" },
               { label: "Case Qty", val: currentData.defaultSupplierUnitQty || "0" },

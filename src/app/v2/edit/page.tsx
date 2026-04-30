@@ -24,6 +24,7 @@ function EditContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [nameError, setNameError] = useState("");
   const [priceError, setPriceError] = useState("");
+  const [costError, setCostError] = useState("");
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   
@@ -103,7 +104,8 @@ function EditContent() {
 
   const nameChanged = originalData.itemName !== currentData.itemName;
   const priceChanged = originalData.pricePL1 !== currentData.pricePL1;
-  const anyChanged = nameChanged || priceChanged;
+  const costChanged = originalData.lastCost !== currentData.lastCost;
+  const anyChanged = nameChanged || priceChanged || costChanged;
 
   const handleSaveChanges = async () => {
     if (!anyChanged) return;
@@ -130,18 +132,31 @@ function EditContent() {
       }
     }
 
-    if (priceChanged) {
+    if (priceChanged || costChanged) {
       try {
-        const res = await fetch("/api/updatePrice", {
+        const now = new Date();
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const formattedDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+        const payload = {
+          zoneName: "Primary Zone",
+          startDate: formattedDate,
+          itemId: currentData.itemId,
+          price1: currentData.pricePL1,
+          cost: currentData.lastCost || "0"
+        };
+
+        const res = await fetch("/api/updatePriceV2", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify([{ itemId: currentData.itemId, zoneId: "Primary Zone", retail1: currentData.pricePL1.trim(), promptForPrice1: false, discount1: "", quantityonly1: true, idealMargin1: "", divider1: 1 }]),
+          body: JSON.stringify(payload),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price update failed");
+        if (!res.ok || (data && data.success === false)) throw new Error(data?.message || "Price/Cost update failed");
       } catch (error) {
         const err = error as Error;
-        setPriceError(err.message || "Price update failed");
+        if (priceChanged) setPriceError(err.message || "Price update failed");
+        if (costChanged) setCostError(err.message || "Cost update failed");
         hasError = true;
       }
     }
@@ -149,11 +164,13 @@ function EditContent() {
     setIsSaving(false);
 
     if (!hasError) {
-      let savedStr = "";
-      if (nameChanged && priceChanged) savedStr = "Name and Price";
-      else if (nameChanged) savedStr = "Name";
-      else if (priceChanged) savedStr = "Price";
-      setSuccessMessage(savedStr ? `Successfully updated ${savedStr}.` : "Your updates have been applied.");
+      let savedStr = [];
+      if (nameChanged) savedStr.push("Name");
+      if (priceChanged) savedStr.push("Price");
+      if (costChanged) savedStr.push("Unit Cost");
+      
+      const savedStrFormatted = savedStr.join(", ");
+      setSuccessMessage(savedStrFormatted ? `Successfully updated ${savedStrFormatted}.` : "Your updates have been applied.");
 
       setOriginalData(currentData);
       setShowSuccessOverlay(true);
@@ -327,6 +344,50 @@ function EditContent() {
               </div>
             )}
           </div>
+
+          {/* Unit Cost */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Unit Cost ($)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*\.?[0-9]*"
+              value={currentData.lastCost}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*\.?\d*$/.test(val)) {
+                  setCurrentData({ ...currentData, lastCost: val });
+                  setCostError("");
+                }
+              }}
+              className={`block w-full px-4 py-3 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all font-medium text-base bg-white shadow-sm ${
+                costError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+              }`}
+              placeholder="0.00"
+            />
+            {costError && (
+              <div className="text-sm pt-1 text-red-500 font-medium flex items-center">
+                <XCircle size={16} className="mr-1.5" />
+                <span>{costError}</span>
+              </div>
+            )}
+            {/* Dynamic API Preview UI */}
+            {!costError && (
+              <div className="text-sm pt-1">
+                {costChanged ? (
+                  <div className="flex items-center text-green-600 font-medium">
+                    <CheckCircle2 size={16} className="mr-1.5" />
+                    <span>Will update to: ${currentData.lastCost}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <XCircle size={16} className="mr-1.5" />
+                    <span>No changes detected</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </section>
 
 
@@ -335,12 +396,6 @@ function EditContent() {
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 pb-3">Read-Only Information</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-500 flex justify-between">
-                <span>Unit Cost</span>
-              </label>
-              <input type="text" value={`$${parseFloat(currentData.lastCost || "0").toFixed(2)}`} disabled className="block w-full px-4 py-3 border border-gray-100 rounded-xl text-gray-500 font-medium text-sm bg-gray-50 cursor-not-allowed" />
-            </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 flex justify-between">
