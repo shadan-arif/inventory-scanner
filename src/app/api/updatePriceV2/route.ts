@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const headerApiKey = request.headers.get("x-api-key");
 
     const baseUrl = headerBaseUrl || "https://25deb.catapultweboffice.com";
-    const apiKey = headerApiKey || "TYKJEJ1TPY2G82C2REG1UWUE0GV2JK4F";
+    const apiKey = headerApiKey || "TYKJEJTPY2G82C2REG1UWUE0GV2JK4F";
 
     if (!baseUrl || !apiKey) {
       return NextResponse.json(
