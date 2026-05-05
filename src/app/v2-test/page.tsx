@@ -534,7 +534,7 @@ export default function V2TestScreen() {
               value={currentData.pricePL1}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
+                if (/^\d*\.?\d{0,2}$/.test(val)) {
                   setCurrentData({ ...currentData, pricePL1: val });
                   setPriceError("");
                 }
@@ -573,7 +573,7 @@ export default function V2TestScreen() {
               value={currentData.lastCost}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
+                if (/^\d*\.?\d{0,2}$/.test(val)) {
                   setCurrentData({ ...currentData, lastCost: val });
                   setCostError("");
                 }
