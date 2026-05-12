@@ -14,7 +14,8 @@ import {
   PackageCheck,
   Tag,
   Printer,
-  Loader2
+  Loader2,
+  ShoppingBag
 } from "lucide-react";
 
 interface User {
@@ -88,10 +89,10 @@ export default function ModulesScreen() {
     {
       id: "buyer",
       name: "Buyer",
-      icon: <Users size={28} className="text-gray-400" />,
-      path: "#",
-      active: false,
-      color: "bg-gray-50 border-gray-100",
+      icon: <ShoppingBag size={28} className="text-violet-600" />,
+      path: "/buyer",
+      active: true,
+      color: "bg-violet-50 border-violet-200 hover:border-violet-400 hover:shadow-violet-100",
     },
     {
       id: "po",
