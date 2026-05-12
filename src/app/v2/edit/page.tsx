@@ -311,7 +311,7 @@ function EditContent() {
               value={currentData.pricePL1}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
+                if (/^\d*\.?\d{0,2}$/.test(val)) {
                   setCurrentData({ ...currentData, pricePL1: val });
                   setPriceError("");
                 }
@@ -355,7 +355,7 @@ function EditContent() {
               value={currentData.lastCost}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
+                if (/^\d*\.?\d{0,2}$/.test(val)) {
                   setCurrentData({ ...currentData, lastCost: val });
                   setCostError("");
                 }
