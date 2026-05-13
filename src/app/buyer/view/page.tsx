@@ -3,7 +3,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { ArrowLeft, Scan, TrendingUp, RefreshCw } from "lucide-react";
+import { ArrowLeft, Scan, TrendingUp, RefreshCw, Bug } from "lucide-react";
+import BuyerDebugModal from "@/components/BuyerDebugModal";
 
 interface ItemDetail {
   itemId: string;
@@ -84,6 +85,9 @@ function BuyerViewContent() {
   const [isSalesLoading, setIsSalesLoading] = useState(true);
   const [itemData, setItemData] = useState<ItemDetail | null>(null);
   const [salesData, setSalesData] = useState<SalesData | null>(null);
+
+  // ── Debug modal state (comment out in production) ──────────────────────────
+  const [showDebugModal, setShowDebugModal] = useState(false);
 
   // ── Fetch item details ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -212,13 +216,25 @@ function BuyerViewContent() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => router.push("/buyer")}
-          className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 rounded-xl font-medium text-sm transition-all"
-        >
-          <Scan size={16} />
-          <span className="hidden sm:inline">Rescan</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* DEBUG BUTTON — comment out in production */}
+          <button
+            onClick={() => setShowDebugModal(true)}
+            className="flex items-center space-x-1.5 px-3 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 active:bg-amber-200 border border-amber-200 rounded-xl font-medium text-xs transition-all"
+            title="Show API State"
+          >
+            <Bug size={14} />
+            <span className="hidden sm:inline">Show API State</span>
+          </button>
+          {/* END DEBUG BUTTON */}
+          <button
+            onClick={() => router.push("/buyer")}
+            className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 rounded-xl font-medium text-sm transition-all"
+          >
+            <Scan size={16} />
+            <span className="hidden sm:inline">Rescan</span>
+          </button>
+        </div>
       </header>
 
       <div className="max-w-2xl mx-auto mt-6 px-4 space-y-6">
@@ -315,6 +331,14 @@ function BuyerViewContent() {
         </section>
 
       </div>
+
+      {/* DEBUG MODAL — comment out in production */}
+      <BuyerDebugModal
+        isOpen={showDebugModal}
+        onClose={() => setShowDebugModal(false)}
+        itemId={rawItemId || ""}
+      />
+      {/* END DEBUG MODAL */}
     </main>
   );
 }

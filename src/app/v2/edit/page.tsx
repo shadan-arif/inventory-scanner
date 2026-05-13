@@ -57,7 +57,7 @@ function EditContent() {
           itemId: data.itemId || id,
           itemName: data.itemName || "",
           pricePL1: (data.pricePL1 || data.price) ? parseFloat(data.pricePL1 || data.price).toFixed(2) : "",
-          lastCost: data.lastCost || "",
+          lastCost: data.lastCost ? parseFloat(data.lastCost).toFixed(2) : "",
           defaultSupplier: data.defaultSupplier || "",
           defaultSupplierUnitId: data.defaultSupplierUnitId || "",
           defaultSupplierUnitQty: data.defaultSupplierUnitQty || "",
