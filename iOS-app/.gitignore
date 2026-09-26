@@ -1,0 +1,24 @@
+
+# Expo and Metro state
+.expo/
+.expo-shared/
+web-build/
+dist/
+
+# Dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Native iOS build output and local Xcode settings
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Secrets and local overrides
+.env
+.env.*

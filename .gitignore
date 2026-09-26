@@ -1,10 +1,14 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Sample Data Files / Postman Logs Left Out 
-.env
 /cert
 data file.txt
 sample.txt
+
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
 
 # dependencies
 /node_modules
@@ -43,3 +47,5 @@ next-env.d.ts
 temp_auto_push.bat
 temp_interactive_push.bat
 branch_structure.json
+iOS-app/.env.example
+iOS-app/.env.example

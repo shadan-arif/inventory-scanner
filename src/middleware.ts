@@ -2,8 +2,25 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "./lib/auth";
 
+const WEB_PREVIEW_ORIGIN = "http://localhost:8081";
+
+function addDevelopmentCors(request: NextRequest, response: NextResponse) {
+  if (request.headers.get("origin") === WEB_PREVIEW_ORIGIN && request.nextUrl.pathname.startsWith("/api/")) {
+    response.headers.set("Access-Control-Allow-Origin", WEB_PREVIEW_ORIGIN);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+    response.headers.append("Vary", "Origin");
+  }
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/api/") && request.method === "OPTIONS") {
+    return addDevelopmentCors(request, new NextResponse(null, { status: 204 }));
+  }
 
   // We are protecting everything EXCEPT:
   // - root (login page)
@@ -20,7 +37,7 @@ export async function middleware(request: NextRequest) {
 
     if (!token) {
       if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return addDevelopmentCors(request, NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
       }
       const url = new URL("/", request.url);
       return NextResponse.redirect(url);
@@ -33,7 +50,7 @@ export async function middleware(request: NextRequest) {
         ? NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         : NextResponse.redirect(new URL("/", request.url));
       response.cookies.delete("ws_session");
-      return response;
+      return addDevelopmentCors(request, response);
     }
 
     // Role-based protection for wholesale settings & admin module
@@ -55,7 +72,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return addDevelopmentCors(request, NextResponse.next());
 }
 
 export const config = {

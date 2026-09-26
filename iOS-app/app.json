@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "LAMS Inventory Scanner",
+    "slug": "lams-inventory-scanner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.lams.inventoryscanner",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        },
+        "NSCameraUsageDescription": "Camera access is required to scan item barcodes."
+      }
+    },
+    "android": {
+      "package": "com.lams.inventoryscanner"
+    },
+    "plugins": ["expo-camera", "expo-secure-store"]
+  }
+}
