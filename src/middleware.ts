@@ -33,7 +33,13 @@ export async function middleware(request: NextRequest) {
   const isSettingsRoute = pathname.startsWith("/wholesale/settings");
 
   if (!isPublicRoute) {
-    const token = request.cookies.get("ws_session")?.value;
+    let token = request.cookies.get("ws_session")?.value;
+    if (!token) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       if (pathname.startsWith("/api/")) {

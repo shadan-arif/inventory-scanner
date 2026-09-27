@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
+      token,
       user: {
         id: user.id,
         code: user.code,
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: isHttps,       // Only true when actually served over HTTPS (Cloudflare/local HTTPS)
       sameSite: "lax",      // lax works fine; the culprit was Secure=true on an HTTP connection
-      maxAge: 8 * 60 * 60, // 8 hours
+      maxAge: 365 * 24 * 60 * 60, // 1 year
       path: "/",
     });
 

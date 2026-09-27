@@ -12,6 +12,7 @@ console.log(
 
 export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:9000";
 const TOKEN_KEY = "lams_session_jwt";
+const USER_KEY = "lams_session_user";
 let sessionToken: string | null = null;
 
 async function readStoredToken() {
@@ -29,6 +30,28 @@ async function removeStoredToken() {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
+async function readStoredUser(): Promise<User | null> {
+  try {
+    const raw = Platform.OS === "web"
+      ? (typeof localStorage === "undefined" ? null : localStorage.getItem(USER_KEY))
+      : await SecureStore.getItemAsync(USER_KEY);
+    return raw ? JSON.parse(raw) as User : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeStoredUser(user: User) {
+  const raw = JSON.stringify(user);
+  if (Platform.OS === "web") { localStorage.setItem(USER_KEY, raw); return; }
+  await SecureStore.setItemAsync(USER_KEY, raw);
+}
+
+async function removeStoredUser() {
+  if (Platform.OS === "web") { localStorage.removeItem(USER_KEY); return; }
+  await SecureStore.deleteItemAsync(USER_KEY);
+}
+
 export const api = axios.create({ baseURL: BASE_URL, timeout: 15000, withCredentials: true, headers: { "Content-Type": "application/json" } });
 api.interceptors.request.use(async (config) => {
   if (Platform.OS !== "web") {
@@ -37,11 +60,18 @@ api.interceptors.request.use(async (config) => {
       config.headers.Authorization = `Bearer ${token}`;
       config.headers.Cookie = `ws_session=${token}`;
     }
+    scannerLogger.info("API:Request", `${config.method?.toUpperCase()} ${config.url}`, {
+      params: config.params,
+      baseURL: config.baseURL,
+      hasToken: !!token,
+      tokenPrefix: token ? token.substring(0, 20) + "..." : "(none)"
+    });
+  } else {
+    scannerLogger.info("API:Request", `${config.method?.toUpperCase()} ${config.url}`, {
+      params: config.params,
+      baseURL: config.baseURL
+    });
   }
-  scannerLogger.info("API:Request", `${config.method?.toUpperCase()} ${config.url}`, {
-    params: config.params,
-    baseURL: config.baseURL
-  });
   return config;
 });
 
@@ -78,23 +108,34 @@ export function apiErrorMessage(error: unknown) {
 
 export async function login(code: string, password: string) {
   const response = await api.post("/api/auth/login", { code, password });
-  // The existing web server sets ws_session as an HttpOnly cookie rather than returning a token body.
-  const token = cookieToken(response.headers["set-cookie"] ?? response.headers["Set-Cookie"]);
+  const user = response.data.user as User;
+  const token = response.data.token || cookieToken(response.headers["set-cookie"] ?? response.headers["Set-Cookie"]);
   // Browsers correctly store HttpOnly cookies, but do not expose Set-Cookie to JavaScript.
   if (!token && Platform.OS === "web") {
     // Marker only: the browser owns the HttpOnly ws_session cookie itself.
     sessionToken = "browser-cookie-session";
     await writeStoredToken(sessionToken);
-    return response.data.user as User;
+    await writeStoredUser(user);
+    return user;
   }
-  if (!token) throw new Error("The server did not return a session cookie.");
+  if (!token) throw new Error("The server did not return a session token or cookie.");
   sessionToken = token;
   await writeStoredToken(token);
-  return response.data.user as User;
+  await writeStoredUser(user);
+  return user;
+}
+export async function restoreSession(): Promise<{ token: string | null; user: User | null }> {
+  sessionToken = await readStoredToken();
+  const user = await readStoredUser();
+  return { token: sessionToken, user };
 }
 export async function restoreToken() { sessionToken = await readStoredToken(); return sessionToken; }
-export async function clearToken() { sessionToken = null; await removeStoredToken(); }
-export async function me() { return (await api.get("/api/auth/me")).data.user as User; }
+export async function clearToken() { sessionToken = null; await removeStoredToken(); await removeStoredUser(); }
+export async function me() {
+  const user = (await api.get("/api/auth/me")).data.user as User;
+  if (user) await writeStoredUser(user);
+  return user;
+}
 export async function logout() { try { await api.post("/api/auth/logout"); } finally { await clearToken(); } }
 
 export type Role = "ADMIN" | "EMPLOYEE";
