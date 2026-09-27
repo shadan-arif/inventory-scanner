@@ -1,0 +1,256 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
+
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
+ENV['RCT_NEW_ARCH_ENABLED'] = '0' if podfile_properties['newArchEnabled'] == 'false'
+ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
+
+platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+
+install! 'cocoapods',
+  :deterministic_uuids => false
+
+prepare_react_native_project!
+
+target 'LAMSInventoryScanner' do
+  use_expo_modules!
+
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    config_command = [
+      'node',
+      '-e',
+      "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"
+    ]
+  else
+    config_command = [
+      'npx',
+      'expo-modules-autolinking',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
+  end
+
+  config = use_native_modules!(config_command)
+
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+  )
+
+  post_install do |installer|
+
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
+    )
+
+    # ================================================================
+    # Force all CocoaPods targets to iOS 15.1
+    # ================================================================
+
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      end
+    end
+
+    # ================================================================
+    # Fix React Native Codegen when project path contains spaces
+    #
+    # The generated ReactCodegen script uses:
+    #
+    #   /bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"
+    #
+    # and with-environment.sh subsequently executes $1 unquoted.
+    #
+    # This breaks paths such as:
+    #
+    #   /Users/.../Github Repo/...
+    #
+    # because "Github Repo" gets split into two arguments.
+    #
+    # We change the generated script so that with-environment.sh is
+    # sourced first, then script_phases.sh is executed separately.
+    # ================================================================
+
+    installer.pods_project.targets.each do |target|
+
+      next unless target.name == 'ReactCodegen'
+
+      target.shell_script_build_phases.each do |phase|
+
+        next unless phase.shell_script
+
+        if phase.shell_script.include?('/bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"')
+
+          phase.shell_script = phase.shell_script.sub(
+            '/bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"',
+            'source "$WITH_ENVIRONMENT" && "$SCRIPT_PHASES_SCRIPT"'
+          )
+
+          puts ""
+          puts "==============================================================="
+          puts "SUCCESS: Patched ReactCodegen script"
+          puts "Project paths containing spaces are now supported."
+          puts "==============================================================="
+          puts ""
+
+        end
+
+      end
+
+    end
+
+    # ================================================================
+    # Fix fmt 11.0.2 + Xcode 27 / Apple Clang
+    #
+    # fmt 11.0.2 automatically enables FMT_USE_CONSTEVAL when it
+    # detects modern Clang.
+    #
+    # Newer Apple Clang/Xcode versions can then produce:
+    #
+    # "Call to consteval function ... is not a constant expression"
+    #
+    # We patch fmt/base.h so FMT_USE_CONSTEVAL is explicitly disabled.
+    # ================================================================
+
+    fmt_base = File.join(
+      installer.sandbox.root,
+      'fmt',
+      'include',
+      'fmt',
+      'base.h'
+    )
+
+    if File.exist?(fmt_base)
+
+      content = File.read(fmt_base)
+
+      unless content.include?('FMT_USE_CONSTEVAL forced off for Xcode 27')
+
+        old_block = <<~'FMT_BLOCK'
+          #if !defined(__cpp_lib_is_constant_evaluated)
+          #  define FMT_USE_CONSTEVAL 0
+          #elif FMT_CPLUSPLUS < 201709L
+          #  define FMT_USE_CONSTEVAL 0
+          #elif FMT_GLIBCXX_RELEASE && FMT_GLIBCXX_RELEASE < 10
+          #  define FMT_USE_CONSTEVAL 0
+          #elif FMT_LIBCPP_VERSION && FMT_LIBCPP_VERSION < 10000
+          #  define FMT_USE_CONSTEVAL 0
+          #elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L
+          #  define FMT_USE_CONSTEVAL 0  // consteval is broken in Apple clang < 14.
+          #elif FMT_MSC_VERSION && FMT_MSC_VERSION < 1929
+          #  define FMT_USE_CONSTEVAL 0  // consteval is broken in MSVC VS2019 < 16.10.
+          #elif defined(__cpp_consteval)
+          #  define FMT_USE_CONSTEVAL 1
+          #elif FMT_GCC_VERSION >= 1002 || FMT_CLANG_VERSION >= 1101
+          #  define FMT_USE_CONSTEVAL 1
+          #else
+          #  define FMT_USE_CONSTEVAL 0
+          #endif
+        FMT_BLOCK
+
+        new_block = <<~'FMT_BLOCK'
+          // FMT_USE_CONSTEVAL forced off for Xcode 27
+          #define FMT_USE_CONSTEVAL 0
+        FMT_BLOCK
+
+        if content.include?(old_block)
+          content = content.sub(old_block, new_block)
+          File.write(fmt_base, content)
+
+          puts ""
+          puts "==============================================================="
+          puts "SUCCESS: Patched fmt/base.h"
+          puts "FMT_USE_CONSTEVAL is now forced to 0"
+          puts "==============================================================="
+          puts ""
+
+        else
+          puts ""
+          puts "==============================================================="
+          puts "WARNING: Could not find expected fmt 11.0.2 block."
+          puts "fmt/base.h may have a different version."
+          puts "==============================================================="
+          puts ""
+        end
+
+      else
+
+        puts ""
+        puts "fmt/base.h is already patched for Xcode 27."
+        puts ""
+
+      end
+
+    else
+
+      puts ""
+      puts "==============================================================="
+      puts "ERROR: fmt/base.h was not found."
+      puts "Expected:"
+      puts fmt_base
+      puts "==============================================================="
+      puts ""
+
+    end
+
+    # ================================================================
+    # Additional compiler-level safeguard for fmt
+    # ================================================================
+
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+          '$(inherited)'
+        ]
+
+        definitions = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS']
+
+        unless definitions.include?('FMT_USE_CONSTEVAL=0')
+          definitions << 'FMT_USE_CONSTEVAL=0'
+        end
+
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] ||= [
+          '$(inherited)'
+        ]
+
+        cpp_flags = config.build_settings['OTHER_CPLUSPLUSFLAGS']
+
+        unless cpp_flags.include?('-DFMT_USE_CONSTEVAL=0')
+          cpp_flags << '-DFMT_USE_CONSTEVAL=0'
+        end
+
+      end
+    end
+
+    # ================================================================
+    # Disable code signing for resource bundles
+    # ================================================================
+
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        end
+
+      end
+    end
+
+  end
+end
