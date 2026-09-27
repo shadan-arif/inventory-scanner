@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ClipboardList,
   DollarSign,
+  FileText,
   Home,
   KeyRound,
   Leaf,
@@ -36,6 +37,7 @@ import {
   ShoppingBag,
   ShoppingCart,
   Tag,
+  Terminal,
   Trash2,
   UserCog,
   UserPlus,
@@ -62,6 +64,8 @@ import {
 } from "../services/api";
 import { useAuth } from "../state/AuthContext";
 import { BarcodeScanner } from "../components/BarcodeScanner";
+import { LogsModal } from "../components/LogsModal";
+import { scannerLogger } from "../services/logger";
 
 type Nav = NativeStackScreenProps<RootStackParams, keyof RootStackParams>;
 const palette = { wholesale: "#2563eb", v2: "#059669", buyer: "#7c3aed", admin: "#9333ea" };
@@ -70,14 +74,21 @@ const money = (value: string | number) => `$${(Number(value) || 0).toFixed(2)}`;
 const caseCost = (item: Item) => (Number(item.defaultSupplierUnitQty) || 0) * (Number(item.lastCost) || 0);
 function errorMessage(error: unknown) { return apiErrorMessage(error); }
 
-function Header({ title, back, right }: { title: string; back: () => void; right?: React.ReactNode }) {
+function Header({ title, back, right, onShowLogs }: { title: string; back: () => void; right?: React.ReactNode; onShowLogs?: () => void }) {
   return (
     <View style={[s.header, ui.header]}>
       <Pressable accessibilityLabel="Back" onPress={back} style={[s.iconButton, ui.iconButton]}>
         <ArrowLeft size={20} color="#475467" />
       </Pressable>
       <Text style={s.headerTitle}>{title}</Text>
-      <View style={s.headerRight}>{right}</View>
+      <View style={s.headerRight}>
+        {onShowLogs && (
+          <Pressable accessibilityLabel="Show Logs" onPress={onShowLogs} style={[s.iconButton, ui.iconButton, s.logsButton]}>
+            <Terminal size={18} color="#2563eb" />
+          </Pressable>
+        )}
+        {right}
+      </View>
     </View>
   );
 }
@@ -240,6 +251,7 @@ const modules = [
 
 export function ModulesScreen({ navigation }: Nav) {
   const { user, logout } = useAuth();
+  const [showLogs, setShowLogs] = useState(false);
   const leave = async () => {
     await logout();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
@@ -253,9 +265,14 @@ export function ModulesScreen({ navigation }: Nav) {
           <Text style={s.headerTitle}>LAMS Supermarket</Text>
           <Text style={s.muted}>{user?.name} <Text style={s.role}>{user?.role}</Text></Text>
         </View>
-        <Pressable accessibilityLabel="Logout" onPress={leave} style={s.iconButton}>
-          <LogOut size={20} color="#b42318" />
-        </Pressable>
+        <View style={s.headerRight}>
+          <Pressable accessibilityLabel="Show Logs" onPress={() => setShowLogs(true)} style={[s.iconButton, ui.iconButton, s.logsButton]}>
+            <Terminal size={18} color="#2563eb" />
+          </Pressable>
+          <Pressable accessibilityLabel="Logout" onPress={leave} style={s.iconButton}>
+            <LogOut size={20} color="#b42318" />
+          </Pressable>
+        </View>
       </View>
       <ScrollView contentContainerStyle={s.content}>
         <Text style={s.pageTitle}>Select Module</Text>
@@ -280,6 +297,7 @@ export function ModulesScreen({ navigation }: Nav) {
           ))}
         </View>
       </ScrollView>
+      <LogsModal visible={showLogs} onClose={() => setShowLogs(false)} />
     </SafeAreaView>
   );
 }
@@ -288,6 +306,8 @@ export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | 
   const [manual, setManual] = useState("");
   const [loading, setLoading] = useState(false);
   const [margin, setMargin] = useState<number | null>(null);
+  const [showLogs, setShowLogs] = useState(false);
+  const isFetchingRef = React.useRef(false);
   const { user } = useAuth();
   const color = palette[mode];
   const label = mode === "v2" ? "Item Manager" : mode === "buyer" ? "Buyer" : "Wholesale";
@@ -298,17 +318,28 @@ export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | 
 
   const find = async (id: string) => {
     Keyboard.dismiss();
-    if (!id) return Alert.alert("Enter an item ID");
+    const cleanId = String(id || "").trim();
+    if (!cleanId) return Alert.alert("Enter an item ID");
+    if (isFetchingRef.current) {
+      scannerLogger.warn("ItemLookup", `Ignored duplicate lookup request for "${cleanId}" while another request is in progress`);
+      return;
+    }
+    isFetchingRef.current = true;
     setLoading(true);
+    scannerLogger.info("ItemLookup", `Initiating lookup for ID: "${cleanId}" in mode: ${mode}`);
     try {
-      await getItem(id);
+      const res = await getItem(cleanId);
+      scannerLogger.success("ItemLookup", `Found item: "${res.itemName}" (Code: ${res.itemId})`, res);
       navigation.navigate(
         mode === "wholesale" ? "WholesaleResult" : mode === "buyer" ? "BuyerView" : "V2Edit",
-        { itemId: id } as any
+        { itemId: cleanId } as any
       );
-    } catch (e) {
-      Alert.alert("Item lookup", errorMessage(e));
+    } catch (e: any) {
+      const msg = errorMessage(e);
+      scannerLogger.error("ItemLookup", `Failed to look up item ID: "${cleanId}"`, { error: msg, raw: e?.message });
+      Alert.alert("Item lookup", msg);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   };
@@ -318,6 +349,7 @@ export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | 
       <Header
         title={label}
         back={() => navigation.navigate("Modules")}
+        onShowLogs={() => setShowLogs(true)}
         right={
           mode === "wholesale" && user?.role === "ADMIN" ? (
             <Pressable onPress={() => navigation.navigate("WholesaleSettings")} style={s.iconButton}>
@@ -373,6 +405,7 @@ export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | 
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <LogsModal visible={showLogs} onClose={() => setShowLogs(false)} />
     </SafeAreaView>
   );
 }
@@ -380,6 +413,7 @@ export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | 
 export function WholesaleResultScreen({ route, navigation }: NativeStackScreenProps<RootStackParams, "WholesaleResult">) {
   const [item, setItem] = useState<Item | null>(null);
   const [margin, setMargin] = useState(35);
+  const [showLogs, setShowLogs] = useState(false);
 
   useEffect(() => {
     Promise.all([getItem(route.params.itemId), getMargin()])
@@ -399,6 +433,7 @@ export function WholesaleResultScreen({ route, navigation }: NativeStackScreenPr
       <Header
         title="Wholesale Item"
         back={() => navigation.goBack()}
+        onShowLogs={() => setShowLogs(true)}
         right={
           <Pressable onPress={() => navigation.replace("Wholesale")} style={[s.smallAction, { backgroundColor: palette.wholesale }]}>
             <ScanLine color="#fff" size={16} />
@@ -433,6 +468,7 @@ export function WholesaleResultScreen({ route, navigation }: NativeStackScreenPr
           ]}
         />
       </ScrollView>
+      <LogsModal visible={showLogs} onClose={() => setShowLogs(false)} />
     </SafeAreaView>
   );
 }
@@ -532,6 +568,7 @@ export function EditorScreen({
   const [sales, setSales] = useState<Sales | null>(null);
   const [salesLoading, setSalesLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
 
   const load = useCallback(
     async (id: string) => {
@@ -598,6 +635,7 @@ export function EditorScreen({
       <Header
         title={buyer ? "Buyer Item" : "Edit Item"}
         back={() => navigation.goBack()}
+        onShowLogs={() => setShowLogs(true)}
         right={
           <Pressable onPress={() => navigation.replace(scanner as any)} style={[s.smallAction, { backgroundColor: color }]}>
             <ScanLine color="#fff" size={16} />
@@ -702,6 +740,7 @@ export function EditorScreen({
           </View>
         </View>
       </Modal>
+      <LogsModal visible={showLogs} onClose={() => setShowLogs(false)} />
     </SafeAreaView>
   );
 }
@@ -915,7 +954,8 @@ const s = StyleSheet.create({
   content: { padding: 16, gap: 14 },
   header: { height: 68, backgroundColor: "#fff", borderBottomWidth: 1, borderColor: "#eaecf0", paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerTitle: { fontSize: 18, fontWeight: "800", color: "#101828" },
-  headerRight: { minWidth: 42, alignItems: "flex-end" },
+  headerRight: { minWidth: 42, flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "flex-end" },
+  logsButton: { backgroundColor: "#eff6ff" },
   iconButton: { width: 38, height: 38, borderRadius: 8, backgroundColor: "#f2f4f7", alignItems: "center", justifyContent: "center" },
   loginCard: { backgroundColor: "#fff", padding: 24, borderRadius: 8, gap: 16, shadowColor: "#101828", shadowOpacity: 0.08, shadowRadius: 20, elevation: 3 },
   portal: { position: "absolute", right: 16, top: 16, zIndex: 2, padding: 8 },

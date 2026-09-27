@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { scannerLogger } from "./logger";
 
 // Set EXPO_PUBLIC_API_BASE_URL in .env to point at the shared Next.js API.
 // Expo exposes EXPO_PUBLIC_* values in both iOS and Android bundles.
@@ -30,14 +31,36 @@ async function removeStoredToken() {
 
 export const api = axios.create({ baseURL: BASE_URL, timeout: 15000, withCredentials: true, headers: { "Content-Type": "application/json" } });
 api.interceptors.request.use(async (config) => {
-  if (Platform.OS === "web") return config;
-  const token = sessionToken ?? await readStoredToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    config.headers.Cookie = `ws_session=${token}`;
+  if (Platform.OS !== "web") {
+    const token = sessionToken ?? await readStoredToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Cookie = `ws_session=${token}`;
+    }
   }
+  scannerLogger.info("API:Request", `${config.method?.toUpperCase()} ${config.url}`, {
+    params: config.params,
+    baseURL: config.baseURL
+  });
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    scannerLogger.info("API:Response", `${response.status} ${response.config.url}`, {
+      data: response.data
+    });
+    return response;
+  },
+  (error) => {
+    scannerLogger.error("API:Error", `${error.config?.url || "Request"} failed: ${error.message}`, {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    return Promise.reject(error);
+  }
+);
 
 function cookieToken(value: unknown): string | null {
   const raw = Array.isArray(value) ? value.join(";") : String(value || "");
