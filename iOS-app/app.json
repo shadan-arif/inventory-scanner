@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+
     "ios": {
       "bundleIdentifier": "com.lams.inventoryscanner",
       "supportsTablet": true,
@@ -16,9 +17,23 @@
         "NSCameraUsageDescription": "Camera access is required to scan item barcodes."
       }
     },
+
     "android": {
       "package": "com.lams.inventoryscanner"
     },
-    "plugins": ["expo-camera", "expo-secure-store"]
+
+    "plugins": [
+      "expo-camera",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4",
+            "enableSceneSupport": true
+          }
+        }
+      ]
+    ]
   }
 }
