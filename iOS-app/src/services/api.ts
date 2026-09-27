@@ -4,6 +4,11 @@ import { Platform } from "react-native";
 
 // Set EXPO_PUBLIC_API_BASE_URL in .env to point at the shared Next.js API.
 // Expo exposes EXPO_PUBLIC_* values in both iOS and Android bundles.
+console.log(
+  "EXPO API URL:",
+  process.env.EXPO_PUBLIC_API_BASE_URL
+);
+
 export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:9000";
 const TOKEN_KEY = "lams_session_jwt";
 let sessionToken: string | null = null;

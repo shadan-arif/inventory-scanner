@@ -1,11 +1,65 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { ArrowLeft, Check, ChevronRight, ClipboardList, DollarSign, Home, KeyRound, Leaf, LogIn, LogOut, PackageCheck, Printer, RefreshCw, ScanLine, Search, Settings, ShoppingBag, ShoppingCart, Tag, Trash2, UserCog, UserPlus, Users } from "lucide-react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  ClipboardList,
+  DollarSign,
+  Home,
+  KeyRound,
+  Leaf,
+  LogIn,
+  LogOut,
+  PackageCheck,
+  Printer,
+  RefreshCw,
+  ScanLine,
+  Search,
+  Settings,
+  ShoppingBag,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  UserCog,
+  UserPlus,
+  Users
+} from "lucide-react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { RootStackParams } from "../../App";
-import { addEmployee, apiErrorMessage, changePassword, deleteEmployee, Employee, employees, getItem, getMargin, getSales, Item, putMargin, saveItem, Sales } from "../services/api";
+import {
+  addEmployee,
+  apiErrorMessage,
+  changePassword,
+  deleteEmployee,
+  Employee,
+  employees,
+  getItem,
+  getMargin,
+  getSales,
+  Item,
+  putMargin,
+  saveItem,
+  Sales
+} from "../services/api";
 import { useAuth } from "../state/AuthContext";
 import { BarcodeScanner } from "../components/BarcodeScanner";
 
@@ -15,67 +69,918 @@ const cleanDigits = (value: string) => value.replace(/\D/g, "");
 const money = (value: string | number) => `$${(Number(value) || 0).toFixed(2)}`;
 const caseCost = (item: Item) => (Number(item.defaultSupplierUnitQty) || 0) * (Number(item.lastCost) || 0);
 function errorMessage(error: unknown) { return apiErrorMessage(error); }
-function Header({ title, back, right }: { title: string; back: () => void; right?: React.ReactNode }) { return <View style={[s.header, ui.header]}><Pressable accessibilityLabel="Back" onPress={back} style={[s.iconButton, ui.iconButton]}><ArrowLeft size={20} color="#475467"/></Pressable><Text style={s.headerTitle}>{title}</Text><View style={s.headerRight}>{right}</View></View>; }
-function Field({ label, value, onChangeText, numeric, secure, error }: { label: string; value: string; onChangeText?: (v: string) => void; numeric?: boolean; secure?: boolean; error?: string }) { return <View style={s.fieldWrap}><Text style={s.label}>{label}</Text><TextInput value={value} editable={!!onChangeText} onChangeText={onChangeText} secureTextEntry={secure} keyboardType={numeric ? "number-pad" : "default"} maxLength={numeric ? 4 : undefined} style={[s.input, ui.input, !onChangeText && s.readonly, error && s.inputError]} placeholderTextColor="#98a2b3"/>{error ? <Text style={s.error}>{error}</Text> : null}</View>; }
-function Button({ label, onPress, color = "#111827", disabled, icon }: { label: string; onPress: () => void; color?: string; disabled?: boolean; icon?: React.ReactNode }) { return <Pressable disabled={disabled} onPress={onPress} style={[s.button, ui.button, { backgroundColor: color }, disabled && s.disabled]}><View style={s.buttonInner}>{icon}<Text style={s.buttonText}>{label}</Text></View></Pressable>; }
+
+function Header({ title, back, right }: { title: string; back: () => void; right?: React.ReactNode }) {
+  return (
+    <View style={[s.header, ui.header]}>
+      <Pressable accessibilityLabel="Back" onPress={back} style={[s.iconButton, ui.iconButton]}>
+        <ArrowLeft size={20} color="#475467" />
+      </Pressable>
+      <Text style={s.headerTitle}>{title}</Text>
+      <View style={s.headerRight}>{right}</View>
+    </View>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChangeText,
+  numeric,
+  secure,
+  error
+}: {
+  label: string;
+  value: string;
+  onChangeText?: (v: string) => void;
+  numeric?: boolean;
+  secure?: boolean;
+  error?: string;
+}) {
+  return (
+    <View style={s.fieldWrap}>
+      <Text style={s.label}>{label}</Text>
+      <TextInput
+        value={value}
+        editable={!!onChangeText}
+        onChangeText={onChangeText}
+        secureTextEntry={secure}
+        keyboardType={numeric ? "number-pad" : "default"}
+        maxLength={numeric ? 4 : undefined}
+        style={[s.input, ui.input, !onChangeText && s.readonly, error && s.inputError]}
+        placeholderTextColor="#98a2b3"
+        returnKeyType="done"
+      />
+      {error ? <Text style={s.error}>{error}</Text> : null}
+    </View>
+  );
+}
+
+function Button({
+  label,
+  onPress,
+  color = "#111827",
+  disabled,
+  icon
+}: {
+  label: string;
+  onPress: () => void;
+  color?: string;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <Pressable disabled={disabled} onPress={onPress} style={[s.button, ui.button, { backgroundColor: color }, disabled && s.disabled]}>
+      <View style={s.buttonInner}>
+        {icon}
+        <Text style={s.buttonText}>{label}</Text>
+      </View>
+    </Pressable>
+  );
+}
 
 export function LoginScreen({ navigation }: Nav) {
-  const { login } = useAuth(); const [admin, setAdmin] = useState(false); const [code, setCode] = useState(""); const [password, setPassword] = useState(""); const [loading, setLoading] = useState(false);
-  const submit = async () => { if (!/^\d{4}$/.test(code) || !/^\d{4}$/.test(password)) return Toast.show({ type: "error", text1: "Invalid credentials", text2: "Code and password must be exactly 4 digits." }); setLoading(true); try { await login(code, password); Toast.show({ type: "success", text1: "Signed in successfully" }); navigation.reset({ index: 0, routes: [{ name: "Modules" }] }); } catch (e) { Toast.show({ type: "error", text1: "Login failed", text2: errorMessage(e), visibilityTime: 7000 }); } finally { setLoading(false); } };
-  return <SafeAreaView edges={["top", "bottom"]} style={s.center}><View style={s.loginCard}><Pressable onPress={() => { setAdmin(!admin); setCode(""); setPassword(""); }} style={s.portal}><UserCog size={20} color={admin ? palette.admin : "#667085"}/></Pressable><View style={s.brand}><View style={[s.brandMark,{backgroundColor:admin ? "#f3e8ff" : "#eff6ff"}]}><ShoppingCart color={admin ? palette.admin : palette.wholesale} size={36}/></View><Text style={s.brandTitle}>LAMS Supermarket</Text><Text style={s.muted}>{admin ? "Admin Access Portal" : "Employee Access"}</Text></View><Field label={admin ? "Admin Code" : "User Code"} value={code} onChangeText={(v) => setCode(cleanDigits(v).slice(0,4))} numeric/><Field label="Password" value={password} onChangeText={(v) => setPassword(cleanDigits(v).slice(0,4))} numeric secure/><Button label={loading ? "Logging in..." : "Login"} onPress={submit} disabled={loading} icon={loading ? <ActivityIndicator color="#fff"/> : <LogIn color="#fff" size={18}/>}/></View></SafeAreaView>;
+  const { login } = useAuth();
+  const [admin, setAdmin] = useState(false);
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    Keyboard.dismiss();
+    if (!/^\d{4}$/.test(code) || !/^\d{4}$/.test(password)) {
+      return Toast.show({
+        type: "error",
+        text1: "Invalid credentials",
+        text2: "Code and password must be exactly 4 digits."
+      });
+    }
+    setLoading(true);
+    try {
+      await login(code, password);
+      Toast.show({ type: "success", text1: "Signed in successfully" });
+      navigation.reset({ index: 0, routes: [{ name: "Modules" }] });
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Login failed",
+        text2: errorMessage(e),
+        visibilityTime: 7000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView edges={["top", "bottom"]} style={s.safeContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={s.loginScroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={s.loginCard}>
+            <Pressable
+              onPress={() => {
+                setAdmin(!admin);
+                setCode("");
+                setPassword("");
+              }}
+              style={s.portal}
+            >
+              <UserCog size={20} color={admin ? palette.admin : "#667085"} />
+            </Pressable>
+            <View style={s.brand}>
+              <View style={[s.brandMark, { backgroundColor: admin ? "#f3e8ff" : "#eff6ff" }]}>
+                <ShoppingCart color={admin ? palette.admin : palette.wholesale} size={36} />
+              </View>
+              <Text style={s.brandTitle}>LAMS Supermarket</Text>
+              <Text style={s.muted}>{admin ? "Admin Access Portal" : "Employee Access"}</Text>
+            </View>
+            <Field
+              label={admin ? "Admin Code" : "User Code"}
+              value={code}
+              onChangeText={(v) => setCode(cleanDigits(v).slice(0, 4))}
+              numeric
+            />
+            <Field
+              label="Password"
+              value={password}
+              onChangeText={(v) => setPassword(cleanDigits(v).slice(0, 4))}
+              numeric
+              secure
+            />
+            <Button
+              label={loading ? "Logging in..." : "Login"}
+              onPress={submit}
+              disabled={loading}
+              icon={loading ? <ActivityIndicator color="#fff" /> : <LogIn color="#fff" size={18} />}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 const modules = [
-  ["Wholesale", "Wholesale", "wholesale", ShoppingCart], ["Item Manager (V2)", "V2", "v2", ScanLine], ["Buyer", "Buyer", "buyer", ShoppingBag],
-  ["Purchase Order", "", "soon", ClipboardList], ["Produce Inv", "", "soon", Leaf], ["Receive Inv", "", "soon", PackageCheck], ["Shelf Label", "", "soon", Tag], ["Print Signs", "", "soon", Printer]
+  ["Wholesale", "Wholesale", "wholesale", ShoppingCart],
+  ["Item Manager (V2)", "V2", "v2", ScanLine],
+  ["Buyer", "Buyer", "buyer", ShoppingBag],
+  ["Purchase Order", "", "soon", ClipboardList],
+  ["Produce Inv", "", "soon", Leaf],
+  ["Receive Inv", "", "soon", PackageCheck],
+  ["Shelf Label", "", "soon", Tag],
+  ["Print Signs", "", "soon", Printer]
 ] as const;
+
 export function ModulesScreen({ navigation }: Nav) {
-  const { user, logout } = useAuth(); const leave = async () => { await logout(); navigation.reset({index:0,routes:[{name:"Login"}]}); };
+  const { user, logout } = useAuth();
+  const leave = async () => {
+    await logout();
+    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+  };
   const rows = user?.role === "ADMIN" ? [...modules, ["Admin Panel", "Admin", "admin", Users] as const] : modules;
-  return <SafeAreaView edges={["top"]} style={s.page}><View style={s.header}><View><Text style={s.headerTitle}>LAMS Supermarket</Text><Text style={s.muted}>{user?.name} <Text style={s.role}>{user?.role}</Text></Text></View><Pressable accessibilityLabel="Logout" onPress={leave} style={s.iconButton}><LogOut size={20} color="#b42318"/></Pressable></View><ScrollView contentContainerStyle={s.content}><Text style={s.pageTitle}>Select Module</Text><View style={s.grid}>{rows.map(([label, route, tone, Icon]) => <Pressable key={label} disabled={!route} onPress={() => route && navigation.navigate(route as any)} style={[s.module,{borderColor:tone === "soon" ? "#eaecf0" : `${palette[tone as keyof typeof palette]}55`},!route&&s.soon]}><View style={[s.moduleIcon,{backgroundColor:tone === "soon" ? "#f2f4f7" : `${palette[tone as keyof typeof palette]}18`}]}><Icon size={25} color={tone === "soon" ? "#98a2b3" : palette[tone as keyof typeof palette]}/></View><Text style={s.moduleText}>{label}</Text>{!route && <Text style={s.soonLabel}>COMING SOON</Text>}</Pressable>)}</View></ScrollView></SafeAreaView>;
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <View style={s.header}>
+        <View>
+          <Text style={s.headerTitle}>LAMS Supermarket</Text>
+          <Text style={s.muted}>{user?.name} <Text style={s.role}>{user?.role}</Text></Text>
+        </View>
+        <Pressable accessibilityLabel="Logout" onPress={leave} style={s.iconButton}>
+          <LogOut size={20} color="#b42318" />
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={s.content}>
+        <Text style={s.pageTitle}>Select Module</Text>
+        <View style={s.grid}>
+          {rows.map(([label, route, tone, Icon]) => (
+            <Pressable
+              key={label}
+              disabled={!route}
+              onPress={() => route && navigation.navigate(route as any)}
+              style={[
+                s.module,
+                { borderColor: tone === "soon" ? "#eaecf0" : `${palette[tone as keyof typeof palette]}55` },
+                !route && s.soon
+              ]}
+            >
+              <View style={[s.moduleIcon, { backgroundColor: tone === "soon" ? "#f2f4f7" : `${palette[tone as keyof typeof palette]}18` }]}>
+                <Icon size={25} color={tone === "soon" ? "#98a2b3" : palette[tone as keyof typeof palette]} />
+              </View>
+              <Text style={s.moduleText}>{label}</Text>
+              {!route && <Text style={s.soonLabel}>COMING SOON</Text>}
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 export function ScannerScreen({ navigation, mode }: Nav & { mode: "wholesale" | "v2" | "buyer" }) {
-  const [manual, setManual] = useState(""); const [loading, setLoading] = useState(false); const [margin, setMargin] = useState<number | null>(null); const { user } = useAuth(); const color = palette[mode]; const label = mode === "v2" ? "Item Manager" : mode === "buyer" ? "Buyer" : "Wholesale";
-  useEffect(() => { if (mode === "wholesale") getMargin().then(setMargin).catch(() => undefined); }, [mode]);
-  const find = async (id: string) => { if (!id) return Alert.alert("Enter an item ID"); setLoading(true); try { await getItem(id); navigation.navigate(mode === "wholesale" ? "WholesaleResult" : mode === "buyer" ? "BuyerView" : "V2Edit", { itemId: id } as any); } catch (e) { Alert.alert("Item lookup", errorMessage(e)); } finally { setLoading(false); } };
-  return <SafeAreaView edges={["top"]} style={s.page}><Header title={label} back={() => navigation.navigate("Modules")} right={mode === "wholesale" && user?.role === "ADMIN" ? <Pressable onPress={() => navigation.navigate("WholesaleSettings")} style={s.iconButton}><Settings size={19} color={color}/></Pressable> : undefined}/><ScrollView contentContainerStyle={s.centerContent}><View style={s.scanCard}><View style={[s.brandMark,{backgroundColor:`${color}18`}]}><ScanLine size={36} color={color}/></View><Text style={s.cardTitle}>{mode === "buyer" ? "Buyer Scan" : "Scan Item"}</Text><Text style={s.muted}>Scan a barcode or enter the item lookup code.</Text>{margin !== null && <Text style={[s.margin,{color}]}>Ideal margin: {margin.toFixed(1)}%</Text>}<View style={s.spacer}/><BarcodeScanner color={color} onScan={find}/><View style={s.or}><View style={s.line}/><Text style={s.muted}>OR</Text><View style={s.line}/></View><View style={s.searchRow}><TextInput value={manual} onChangeText={(v) => setManual(cleanDigits(v))} keyboardType="number-pad" placeholder="Item lookup code" style={[s.input,{flex:1}]} onSubmitEditing={() => find(manual)}/><Pressable onPress={() => find(manual)} style={[s.searchButton,{backgroundColor:color}]}>{loading?<ActivityIndicator color="#fff"/>:<Search color="#fff" size={20}/>}</Pressable></View><Button label={loading ? "Fetching..." : "Look up item"} onPress={() => find(manual)} color={color} disabled={!manual || loading} icon={<ChevronRight color="#fff" size={18}/>}/></View></ScrollView></SafeAreaView>;
+  const [manual, setManual] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [margin, setMargin] = useState<number | null>(null);
+  const { user } = useAuth();
+  const color = palette[mode];
+  const label = mode === "v2" ? "Item Manager" : mode === "buyer" ? "Buyer" : "Wholesale";
+
+  useEffect(() => {
+    if (mode === "wholesale") getMargin().then(setMargin).catch(() => undefined);
+  }, [mode]);
+
+  const find = async (id: string) => {
+    Keyboard.dismiss();
+    if (!id) return Alert.alert("Enter an item ID");
+    setLoading(true);
+    try {
+      await getItem(id);
+      navigation.navigate(
+        mode === "wholesale" ? "WholesaleResult" : mode === "buyer" ? "BuyerView" : "V2Edit",
+        { itemId: id } as any
+      );
+    } catch (e) {
+      Alert.alert("Item lookup", errorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <Header
+        title={label}
+        back={() => navigation.navigate("Modules")}
+        right={
+          mode === "wholesale" && user?.role === "ADMIN" ? (
+            <Pressable onPress={() => navigation.navigate("WholesaleSettings")} style={s.iconButton}>
+              <Settings size={19} color={color} />
+            </Pressable>
+          ) : undefined
+        }
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={s.centerContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={s.scanCard}>
+            <View style={[s.brandMark, { backgroundColor: `${color}18` }]}>
+              <ScanLine size={36} color={color} />
+            </View>
+            <Text style={s.cardTitle}>{mode === "buyer" ? "Buyer Scan" : "Scan Item"}</Text>
+            <Text style={s.muted}>Scan a barcode or enter the item lookup code.</Text>
+            {margin !== null && <Text style={[s.margin, { color }]}>Ideal margin: {margin.toFixed(1)}%</Text>}
+            <View style={s.spacer} />
+            <BarcodeScanner color={color} onScan={find} />
+            <View style={s.or}>
+              <View style={s.line} />
+              <Text style={s.muted}>OR</Text>
+              <View style={s.line} />
+            </View>
+            <View style={s.searchRow}>
+              <TextInput
+                value={manual}
+                onChangeText={(v) => setManual(cleanDigits(v))}
+                keyboardType="number-pad"
+                placeholder="Item lookup code"
+                style={[s.input, { flex: 1 }]}
+                onSubmitEditing={() => find(manual)}
+                returnKeyType="search"
+              />
+              <Pressable onPress={() => find(manual)} style={[s.searchButton, { backgroundColor: color }]}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Search color="#fff" size={20} />}
+              </Pressable>
+            </View>
+            <Button
+              label={loading ? "Fetching..." : "Look up item"}
+              onPress={() => find(manual)}
+              color={color}
+              disabled={!manual || loading}
+              icon={<ChevronRight color="#fff" size={18} />}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
 
 export function WholesaleResultScreen({ route, navigation }: NativeStackScreenProps<RootStackParams, "WholesaleResult">) {
-  const [item,setItem]=useState<Item|null>(null); const [margin,setMargin]=useState(35); useEffect(()=>{Promise.all([getItem(route.params.itemId),getMargin()]).then(([i,m])=>{setItem(i);setMargin(m);}).catch(e=>Alert.alert("Item lookup",errorMessage(e)));},[route.params.itemId]); if(!item)return <Loading/>; const cost=caseCost(item), price=margin<100?cost/(1-margin/100):0;
-  return <SafeAreaView edges={["top"]} style={s.page}><Header title="Wholesale Item" back={()=>navigation.goBack()} right={<Pressable onPress={()=>navigation.replace("Wholesale")} style={[s.smallAction,{backgroundColor:palette.wholesale}]}><ScanLine color="#fff" size={16}/><Text style={s.smallActionText}>Rescan</Text></Pressable>}/><ScrollView contentContainerStyle={s.content}><View style={[s.hero,{backgroundColor:palette.wholesale}]}><Text style={s.heroLabel}>CALCULATED CUSTOMER PRICE</Text><Text style={s.heroValue}>{money(price)} <Text style={s.heroSub}>/ case</Text></Text><Text style={s.heroHint}>Based on {margin.toFixed(1)}% ideal margin</Text></View><InfoCard title="Basic Info" rows={[["Item Code",item.itemId],["Unit Cost",money(item.lastCost)],["Description",item.itemName||"-"],["Unit Price",money(item.pricePL1)],["Case Quantity",String(Number(item.defaultSupplierUnitQty)||0)]]}/><InfoCard title="Primary Supplier" rows={[["Supplier",item.defaultSupplier||"-"],["Supplier ID",item.defaultSupplierUnitId||"-"],["Case Cost",money(cost)]]}/></ScrollView></SafeAreaView>;
+  const [item, setItem] = useState<Item | null>(null);
+  const [margin, setMargin] = useState(35);
+
+  useEffect(() => {
+    Promise.all([getItem(route.params.itemId), getMargin()])
+      .then(([i, m]) => {
+        setItem(i);
+        setMargin(m);
+      })
+      .catch((e) => Alert.alert("Item lookup", errorMessage(e)));
+  }, [route.params.itemId]);
+
+  if (!item) return <Loading />;
+  const cost = caseCost(item),
+    price = margin < 100 ? cost / (1 - margin / 100) : 0;
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <Header
+        title="Wholesale Item"
+        back={() => navigation.goBack()}
+        right={
+          <Pressable onPress={() => navigation.replace("Wholesale")} style={[s.smallAction, { backgroundColor: palette.wholesale }]}>
+            <ScanLine color="#fff" size={16} />
+            <Text style={s.smallActionText}>Rescan</Text>
+          </Pressable>
+        }
+      />
+      <ScrollView contentContainerStyle={s.content}>
+        <View style={[s.hero, { backgroundColor: palette.wholesale }]}>
+          <Text style={s.heroLabel}>CALCULATED CUSTOMER PRICE</Text>
+          <Text style={s.heroValue}>
+            {money(price)} <Text style={s.heroSub}>/ case</Text>
+          </Text>
+          <Text style={s.heroHint}>Based on {margin.toFixed(1)}% ideal margin</Text>
+        </View>
+        <InfoCard
+          title="Basic Info"
+          rows={[
+            ["Item Code", item.itemId],
+            ["Unit Cost", money(item.lastCost)],
+            ["Description", item.itemName || "-"],
+            ["Unit Price", money(item.pricePL1)],
+            ["Case Quantity", String(Number(item.defaultSupplierUnitQty) || 0)]
+          ]}
+        />
+        <InfoCard
+          title="Primary Supplier"
+          rows={[
+            ["Supplier", item.defaultSupplier || "-"],
+            ["Supplier ID", item.defaultSupplierUnitId || "-"],
+            ["Case Cost", money(cost)]
+          ]}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
-function InfoCard({title,rows}:{title:string;rows:string[][]}) { return <View style={[s.infoCard, ui.card]}><Text style={s.infoTitle}>{title}</Text>{rows.map(([k,v])=><View key={k} style={s.infoRow}><Text style={s.infoKey}>{k}</Text><Text style={s.infoValue}>{v}</Text></View>)}</View>; }
-function Loading(){return <View style={s.center}><ActivityIndicator size="large" color={palette.v2}/></View>}
 
-export function WholesaleSettingsScreen({navigation}:NativeStackScreenProps<RootStackParams,"WholesaleSettings">){const [margin,setMargin]=useState("");const [saving,setSaving]=useState(false);useEffect(()=>{getMargin().then(v=>setMargin(String(v))).catch(e=>Alert.alert("Settings",errorMessage(e)));},[]);const save=async()=>{const value=Number(margin);if(!Number.isFinite(value)||value<0||value>100)return Alert.alert("Invalid margin","Enter a number between 0 and 100.");setSaving(true);try{await putMargin(value);Alert.alert("Saved","Ideal margin updated.");navigation.goBack();}catch(e){Alert.alert("Save failed",errorMessage(e));}finally{setSaving(false)}};return <SafeAreaView edges={["top"]} style={s.page}><Header title="Wholesale Settings" back={()=>navigation.goBack()}/><View style={s.content}><View style={s.infoCard}><Text style={s.cardTitle}>Ideal Margin %</Text><Text style={[s.muted,{marginBottom:16}]}>This setting is shared with the web application.</Text><TextInput value={margin} onChangeText={setMargin} keyboardType="decimal-pad" style={s.input}/><View style={s.spacer}/><Button label={saving?"Saving...":"Save margin"} onPress={save} color={palette.wholesale} disabled={saving}/></View></View></SafeAreaView>}
-
-export function EditorScreen({ route, navigation, buyer }: (NativeStackScreenProps<RootStackParams, "V2Edit"> | NativeStackScreenProps<RootStackParams, "BuyerView">) & { buyer: boolean }) {
-  const itemId = route.params.itemId; const color = buyer ? palette.buyer : palette.v2; const scanner = buyer ? "Buyer" : "V2"; const [original,setOriginal]=useState<Item|null>(null); const [item,setItem]=useState<Item|null>(null); const [lookup,setLookup]=useState(itemId); const [saving,setSaving]=useState(false); const [sales,setSales]=useState<Sales|null>(null); const [salesLoading,setSalesLoading]=useState(false); const [success,setSuccess]=useState(false);
-  const load = useCallback(async(id:string)=>{try{const found=await getItem(id);setOriginal(found);setItem({...found,pricePL1:(Number(found.pricePL1)||0).toFixed(2),lastCost:(Number(found.lastCost)||0).toFixed(2)});setLookup(found.itemId);if(buyer) refreshSales(found.itemId);}catch(e){Alert.alert("Item lookup",errorMessage(e));}},[buyer]);
-  useEffect(()=>{load(itemId);},[itemId,load]);
-  const refreshSales=async(id=item?.itemId)=>{if(!id)return;setSalesLoading(true);try{setSales(await getSales(id));}catch(e){Alert.alert("Sales refresh",errorMessage(e));}finally{setSalesLoading(false)}};
-  const update=(key:keyof Item,value:string)=>item&&setItem({...item,[key]:value});
-  const changed=!!item&&!!original&&(item.itemName!==original.itemName||item.pricePL1!==original.pricePL1||item.lastCost!==original.lastCost);
-  const save=async()=>{if(!item||!original||!changed)return;setSaving(true);try{await saveItem(original,item);setOriginal(item);setSuccess(true);setTimeout(()=>navigation.replace(scanner as any),2500);}catch(e){Alert.alert("Save failed",errorMessage(e));}finally{setSaving(false)}};
-  if(!item)return <Loading/>; const cost=caseCost(item);
-  return <SafeAreaView edges={["top"]} style={s.page}><Header title={buyer?"Buyer Item":"Edit Item"} back={()=>navigation.goBack()} right={<Pressable onPress={()=>navigation.replace(scanner as any)} style={[s.smallAction,{backgroundColor:color}]}><ScanLine color="#fff" size={16}/><Text style={s.smallActionText}>Rescan</Text></Pressable>}/><ScrollView contentContainerStyle={s.content}>
-    {buyer&&<View style={s.infoCard}><View style={s.cardLine}><Text style={s.infoTitle}>Sales Summary</Text><Pressable onPress={()=>refreshSales()} style={s.iconButton}>{salesLoading?<ActivityIndicator color={color}/>:<RefreshCw size={18} color={color}/>}</Pressable></View><View style={s.salesGrid}>{[["7 Days",sales?.last7Days.qtySold],["14 Days",sales?.last14Days.qtySold],["30 Days",sales?.last30Days.qtySold]].map(([label,value])=><View key={String(label)} style={[s.saleTile,{borderColor:color}]}><Text style={[s.saleValue,{color}]}>{Math.round(Number(value)||0)}</Text><Text style={s.saleLabel}>{label}</Text></View>)}</View></View>}
-    <View style={s.infoCard}><Text style={s.infoTitle}>Edit Details</Text><Text style={s.label}>Item ID</Text><View style={s.searchRow}><TextInput value={lookup} onChangeText={v=>setLookup(cleanDigits(v))} keyboardType="number-pad" style={[s.input,{flex:1}]}/><Pressable onPress={()=>load(lookup)} style={[s.searchButton,{backgroundColor:color}]}><Search size={20} color="#fff"/></Pressable></View><Editable label="Description" value={item.itemName} onChangeText={v=>update("itemName",v)} changed={item.itemName!==original?.itemName} /><Editable label="Retail Price" value={item.pricePL1} onChangeText={v=>update("pricePL1",v.replace(/[^0-9.]/g,""))} changed={item.pricePL1!==original?.pricePL1} numeric/><Editable label="Unit Cost" value={item.lastCost} onChangeText={v=>update("lastCost",v.replace(/[^0-9.]/g,""))} changed={item.lastCost!==original?.lastCost} numeric/><View style={s.spacer}/><Button label={saving?"Saving...":"Save changes"} onPress={save} color={color} disabled={!changed||saving} icon={<Check size={18} color="#fff"/>}/></View>
-    <InfoCard title="Supplier Details" rows={[["Supplier",item.defaultSupplier||"-"],["Supplier ID",item.defaultSupplierUnitId||"-"],["Case Quantity",String(Number(item.defaultSupplierUnitQty)||0)],["Case Cost",money(cost)]]}/>
-  </ScrollView><Modal visible={success} transparent animationType="fade"><View style={s.modalBg}><View style={s.successCard}><Check size={44} color="#fff"/><Text style={s.successTitle}>Changes saved</Text><Text style={s.successText}>Returning to scanner...</Text></View></View></Modal></SafeAreaView>;
-}
-function Editable({label,value,onChangeText,changed,numeric}:{label:string;value:string;onChangeText:(v:string)=>void;changed:boolean;numeric?:boolean}){return <View style={s.fieldWrap}><Text style={s.label}>{label}</Text><TextInput value={value} onChangeText={onChangeText} keyboardType={numeric?"decimal-pad":"default"} style={s.input}/>{changed&&<Text style={s.diff}>Will update to: {value}</Text>}</View>}
-
-export function AdminScreen({ navigation }: NativeStackScreenProps<RootStackParams,"Admin">) {
-  const { user }=useAuth(); const [list,setList]=useState<Employee[]>([]);const [refreshing,setRefreshing]=useState(true);const [mode,setMode]=useState<"add"|"password"|"delete"|null>(null);const [target,setTarget]=useState<Employee|null>(null);const [name,setName]=useState("");const [code,setCode]=useState("");const [pin,setPin]=useState("");const [role,setRole]=useState<"EMPLOYEE"|"ADMIN">("EMPLOYEE");
-  const refresh=useCallback(async()=>{setRefreshing(true);try{setList(await employees());}catch(e){Alert.alert("Employees",errorMessage(e));}finally{setRefreshing(false)}},[]);useEffect(()=>{refresh();},[refresh]); const close=()=>{setMode(null);setTarget(null);setName("");setCode("");setPin("");setRole("EMPLOYEE")};
-  const submit=async()=>{try{if(mode==="add"){if(!name.trim()||!/^\d{4}$/.test(code)||!/^\d{4}$/.test(pin))return Alert.alert("Invalid employee","Enter a name and 4-digit code and password.");await addEmployee({name:name.trim(),code,password:pin,role});}if(mode==="password"&&target){if(!/^\d{4}$/.test(pin))return Alert.alert("Invalid password","Password must be exactly 4 digits.");await changePassword(target.id,pin);}if(mode==="delete"&&target){if(target.id===user?.id)return Alert.alert("Not allowed","You cannot delete your own account.");await deleteEmployee(target.id);}close();await refresh();}catch(e){Alert.alert("Admin action failed",errorMessage(e));}};
-  return <SafeAreaView edges={["top"]} style={s.page}><Header title="Admin Dashboard" back={()=>navigation.navigate("Modules")} right={<Pressable onPress={()=>setMode("add")} style={[s.smallAction,{backgroundColor:palette.admin}]}><UserPlus size={16} color="#fff"/><Text style={s.smallActionText}>Add</Text></Pressable>}/><FlatList data={list} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh}/>} contentContainerStyle={s.content} keyExtractor={e=>String(e.id)} renderItem={({item})=><View style={s.employee}><View style={{flex:1}}><Text style={s.employeeName}>{item.name}</Text><Text style={s.muted}>{item.code}  {new Date(item.createdAt).toLocaleDateString()}</Text></View><Text style={[s.badge,{backgroundColor:item.role==="ADMIN"?"#f3e8ff":"#ecfdf3",color:item.role==="ADMIN"?palette.admin:palette.v2}]}>{item.role}</Text><Pressable onPress={()=>{setTarget(item);setMode("password")}} style={s.rowIcon}><KeyRound size={18} color="#475467"/></Pressable><Pressable onPress={()=>{setTarget(item);setMode("delete")}} style={s.rowIcon}><Trash2 size={18} color="#b42318"/></Pressable></View>}/><Modal visible={mode!==null} transparent animationType="slide"><View style={s.modalBg}><View style={s.dialog}>{mode==="add"&&<><Text style={s.cardTitle}>Add Employee</Text><Field label="Name" value={name} onChangeText={setName}/><Field label="Code" value={code} onChangeText={v=>setCode(cleanDigits(v).slice(0,4))} numeric/><Field label="Password" value={pin} onChangeText={v=>setPin(cleanDigits(v).slice(0,4))} numeric secure/><View style={s.roleRow}>{(["EMPLOYEE","ADMIN"] as const).map(r=><Pressable key={r} onPress={()=>setRole(r)} style={[s.roleChoice,role===r&&{borderColor:palette.admin,backgroundColor:"#f3e8ff"}]}><Text>{r}</Text></Pressable>)}</View></>}{mode==="password"&&<><Text style={s.cardTitle}>Update Password</Text><Text style={s.muted}>{target?.name}</Text><Field label="New 4-digit password" value={pin} onChangeText={v=>setPin(cleanDigits(v).slice(0,4))} numeric secure/></>}{mode==="delete"&&<><Text style={s.cardTitle}>Delete Employee?</Text><Text style={s.muted}>Delete {target?.name}? This cannot be undone.</Text></>}<View style={s.dialogButtons}><Button label="Cancel" onPress={close} color="#667085"/><Button label={mode==="delete"?"Delete":mode==="add"?"Add":"Save"} onPress={submit} color={mode==="delete"?"#b42318":palette.admin}/></View></View></View></Modal></SafeAreaView>;
+function InfoCard({ title, rows }: { title: string; rows: string[][] }) {
+  return (
+    <View style={[s.infoCard, ui.card]}>
+      <Text style={s.infoTitle}>{title}</Text>
+      {rows.map(([k, v]) => (
+        <View key={k} style={s.infoRow}>
+          <Text style={s.infoKey}>{k}</Text>
+          <Text style={s.infoValue}>{v}</Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
-const s=StyleSheet.create({page:{flex:1,backgroundColor:"#f8fafc"},center:{flex:1,justifyContent:"center",padding:20,backgroundColor:"#f8fafc"},centerContent:{flexGrow:1,justifyContent:"center",padding:20},content:{padding:16,gap:14},header:{height:68,backgroundColor:"#fff",borderBottomWidth:1,borderColor:"#eaecf0",paddingHorizontal:16,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},headerTitle:{fontSize:18,fontWeight:"800",color:"#101828"},headerRight:{minWidth:42,alignItems:"flex-end"},iconButton:{width:38,height:38,borderRadius:8,backgroundColor:"#f2f4f7",alignItems:"center",justifyContent:"center"},loginCard:{backgroundColor:"#fff",padding:24,borderRadius:8,gap:16,shadowColor:"#101828",shadowOpacity:.08,shadowRadius:20,elevation:3},portal:{position:"absolute",right:16,top:16,zIndex:2,padding:8},brand:{alignItems:"center",gap:7,marginVertical:8},brandMark:{width:76,height:76,borderRadius:8,alignItems:"center",justifyContent:"center"},brandTitle:{fontSize:23,fontWeight:"800",color:"#101828"},muted:{color:"#667085",fontSize:13},role:{fontWeight:"800",color:"#344054"},fieldWrap:{gap:6,marginTop:8},label:{fontWeight:"700",fontSize:13,color:"#344054"},input:{height:48,borderWidth:1,borderColor:"#d0d5dd",borderRadius:7,paddingHorizontal:13,fontSize:16,color:"#101828",backgroundColor:"#fff"},readonly:{backgroundColor:"#f2f4f7",color:"#475467"},inputError:{borderColor:"#f04438"},error:{color:"#b42318",fontSize:12},button:{height:50,borderRadius:7,justifyContent:"center",marginTop:8},buttonInner:{flexDirection:"row",gap:8,justifyContent:"center",alignItems:"center"},buttonText:{color:"#fff",fontSize:15,fontWeight:"800"},disabled:{opacity:.45},pageTitle:{fontSize:21,fontWeight:"800",color:"#101828",marginBottom:2},grid:{flexDirection:"row",flexWrap:"wrap",gap:12},module:{width:"47%",minHeight:138,borderWidth:1,borderRadius:8,backgroundColor:"#fff",padding:15,justifyContent:"space-between"},moduleIcon:{height:50,width:50,borderRadius:8,alignItems:"center",justifyContent:"center"},moduleText:{fontWeight:"800",color:"#344054",fontSize:14},soon:{opacity:.66},soonLabel:{fontSize:9,color:"#98a2b3",fontWeight:"800"},scanCard:{backgroundColor:"#fff",padding:22,borderRadius:8,gap:10,shadowColor:"#101828",shadowOpacity:.07,shadowRadius:15,elevation:2},cardTitle:{fontSize:19,fontWeight:"800",color:"#101828"},spacer:{height:8},margin:{fontWeight:"800",fontSize:13},or:{flexDirection:"row",alignItems:"center",gap:10,paddingVertical:8},line:{height:1,backgroundColor:"#eaecf0",flex:1},searchRow:{flexDirection:"row",gap:8,alignItems:"center"},searchButton:{height:48,width:50,borderRadius:7,alignItems:"center",justifyContent:"center"},smallAction:{height:36,borderRadius:7,paddingHorizontal:10,flexDirection:"row",alignItems:"center",gap:5},smallActionText:{color:"#fff",fontWeight:"800",fontSize:13},hero:{borderRadius:8,padding:22,gap:8},heroLabel:{color:"#dbeafe",fontSize:12,fontWeight:"800"},heroValue:{fontSize:38,color:"#fff",fontWeight:"900"},heroSub:{fontSize:16,fontWeight:"700"},heroHint:{alignSelf:"flex-start",backgroundColor:"#ffffff30",padding:7,borderRadius:6,color:"#fff",fontWeight:"700",fontSize:12},infoCard:{backgroundColor:"#fff",borderWidth:1,borderColor:"#eaecf0",borderRadius:8,padding:16,gap:10},infoTitle:{fontSize:14,fontWeight:"900",color:"#475467",textTransform:"uppercase"},infoRow:{borderTopWidth:1,borderColor:"#f2f4f7",paddingTop:10,gap:3},infoKey:{fontSize:12,fontWeight:"700",color:"#667085"},infoValue:{fontSize:15,fontWeight:"700",color:"#101828"},cardLine:{flexDirection:"row",justifyContent:"space-between",alignItems:"center"},salesGrid:{flexDirection:"row",gap:8},saleTile:{flex:1,borderWidth:1,borderRadius:7,alignItems:"center",paddingVertical:12,gap:4},saleValue:{fontSize:22,fontWeight:"900"},saleLabel:{fontSize:11,color:"#667085",fontWeight:"700"},diff:{fontSize:12,color:"#027a48",fontWeight:"700"},modalBg:{flex:1,backgroundColor:"#10182899",justifyContent:"center",padding:22},successCard:{backgroundColor:palette.v2,borderRadius:8,padding:28,alignItems:"center",gap:10},successTitle:{fontSize:21,fontWeight:"900",color:"#fff"},successText:{color:"#d1fadf"},employee:{backgroundColor:"#fff",borderWidth:1,borderColor:"#eaecf0",borderRadius:8,padding:14,flexDirection:"row",alignItems:"center",gap:8},employeeName:{fontWeight:"800",fontSize:16,color:"#101828"},badge:{fontSize:10,fontWeight:"900",paddingHorizontal:7,paddingVertical:5,borderRadius:6,overflow:"hidden"},rowIcon:{padding:6},dialog:{backgroundColor:"#fff",borderRadius:8,padding:20,gap:10},dialogButtons:{flexDirection:"row",gap:10,marginTop:10},roleRow:{flexDirection:"row",gap:8},roleChoice:{borderWidth:1,borderColor:"#d0d5dd",padding:12,borderRadius:7,flex:1,alignItems:"center"}});
+function Loading() {
+  return (
+    <View style={s.center}>
+      <ActivityIndicator size="large" color={palette.v2} />
+    </View>
+  );
+}
+
+export function WholesaleSettingsScreen({ navigation }: NativeStackScreenProps<RootStackParams, "WholesaleSettings">) {
+  const [margin, setMargin] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getMargin()
+      .then((v) => setMargin(String(v)))
+      .catch((e) => Alert.alert("Settings", errorMessage(e)));
+  }, []);
+
+  const save = async () => {
+    Keyboard.dismiss();
+    const value = Number(margin);
+    if (!Number.isFinite(value) || value < 0 || value > 100)
+      return Alert.alert("Invalid margin", "Enter a number between 0 and 100.");
+    setSaving(true);
+    try {
+      await putMargin(value);
+      Alert.alert("Saved", "Ideal margin updated.");
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert("Save failed", errorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <Header title="Wholesale Settings" back={() => navigation.goBack()} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={s.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={s.infoCard}>
+            <Text style={s.cardTitle}>Ideal Margin %</Text>
+            <Text style={[s.muted, { marginBottom: 16 }]}>This setting is shared with the web application.</Text>
+            <TextInput
+              value={margin}
+              onChangeText={setMargin}
+              keyboardType="decimal-pad"
+              style={s.input}
+              placeholder="e.g. 35.0"
+              returnKeyType="done"
+            />
+            <View style={s.spacer} />
+            <Button label={saving ? "Saving..." : "Save margin"} onPress={save} color={palette.wholesale} disabled={saving} />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+export function EditorScreen({
+  route,
+  navigation,
+  buyer
+}: (NativeStackScreenProps<RootStackParams, "V2Edit"> | NativeStackScreenProps<RootStackParams, "BuyerView">) & { buyer: boolean }) {
+  const itemId = route.params.itemId;
+  const color = buyer ? palette.buyer : palette.v2;
+  const scanner = buyer ? "Buyer" : "V2";
+  const [original, setOriginal] = useState<Item | null>(null);
+  const [item, setItem] = useState<Item | null>(null);
+  const [lookup, setLookup] = useState(itemId);
+  const [saving, setSaving] = useState(false);
+  const [sales, setSales] = useState<Sales | null>(null);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const load = useCallback(
+    async (id: string) => {
+      try {
+        const found = await getItem(id);
+        setOriginal(found);
+        setItem({
+          ...found,
+          pricePL1: (Number(found.pricePL1) || 0).toFixed(2),
+          lastCost: (Number(found.lastCost) || 0).toFixed(2)
+        });
+        setLookup(found.itemId);
+        if (buyer) refreshSales(found.itemId);
+      } catch (e) {
+        Alert.alert("Item lookup", errorMessage(e));
+      }
+    },
+    [buyer]
+  );
+
+  useEffect(() => {
+    load(itemId);
+  }, [itemId, load]);
+
+  const refreshSales = async (id = item?.itemId) => {
+    if (!id) return;
+    setSalesLoading(true);
+    try {
+      setSales(await getSales(id));
+    } catch (e) {
+      Alert.alert("Sales refresh", errorMessage(e));
+    } finally {
+      setSalesLoading(false);
+    }
+  };
+
+  const update = (key: keyof Item, value: string) => item && setItem({ ...item, [key]: value });
+  const changed =
+    !!item &&
+    !!original &&
+    (item.itemName !== original.itemName || item.pricePL1 !== original.pricePL1 || item.lastCost !== original.lastCost);
+
+  const save = async () => {
+    Keyboard.dismiss();
+    if (!item || !original || !changed) return;
+    setSaving(true);
+    try {
+      await saveItem(original, item);
+      setOriginal(item);
+      setSuccess(true);
+      setTimeout(() => navigation.replace(scanner as any), 2500);
+    } catch (e) {
+      Alert.alert("Save failed", errorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!item) return <Loading />;
+  const cost = caseCost(item);
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <Header
+        title={buyer ? "Buyer Item" : "Edit Item"}
+        back={() => navigation.goBack()}
+        right={
+          <Pressable onPress={() => navigation.replace(scanner as any)} style={[s.smallAction, { backgroundColor: color }]}>
+            <ScanLine color="#fff" size={16} />
+            <Text style={s.smallActionText}>Rescan</Text>
+          </Pressable>
+        }
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={s.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {buyer && (
+            <View style={s.infoCard}>
+              <View style={s.cardLine}>
+                <Text style={s.infoTitle}>Sales Summary</Text>
+                <Pressable onPress={() => refreshSales()} style={s.iconButton}>
+                  {salesLoading ? <ActivityIndicator color={color} /> : <RefreshCw size={18} color={color} />}
+                </Pressable>
+              </View>
+              <View style={s.salesGrid}>
+                {[
+                  ["7 Days", sales?.last7Days.qtySold],
+                  ["14 Days", sales?.last14Days.qtySold],
+                  ["30 Days", sales?.last30Days.qtySold]
+                ].map(([label, value]) => (
+                  <View key={String(label)} style={[s.saleTile, { borderColor: color }]}>
+                    <Text style={[s.saleValue, { color }]}>{Math.round(Number(value) || 0)}</Text>
+                    <Text style={s.saleLabel}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+          <View style={s.infoCard}>
+            <Text style={s.infoTitle}>Edit Details</Text>
+            <Text style={s.label}>Item ID</Text>
+            <View style={s.searchRow}>
+              <TextInput
+                value={lookup}
+                onChangeText={(v) => setLookup(cleanDigits(v))}
+                keyboardType="number-pad"
+                style={[s.input, { flex: 1 }]}
+                returnKeyType="search"
+                onSubmitEditing={() => load(lookup)}
+              />
+              <Pressable onPress={() => load(lookup)} style={[s.searchButton, { backgroundColor: color }]}>
+                <Search size={20} color="#fff" />
+              </Pressable>
+            </View>
+            <Editable
+              label="Description"
+              value={item.itemName}
+              onChangeText={(v) => update("itemName", v)}
+              changed={item.itemName !== original?.itemName}
+            />
+            <Editable
+              label="Retail Price"
+              value={item.pricePL1}
+              onChangeText={(v) => update("pricePL1", v.replace(/[^0-9.]/g, ""))}
+              changed={item.pricePL1 !== original?.pricePL1}
+              numeric
+            />
+            <Editable
+              label="Unit Cost"
+              value={item.lastCost}
+              onChangeText={(v) => update("lastCost", v.replace(/[^0-9.]/g, ""))}
+              changed={item.lastCost !== original?.lastCost}
+              numeric
+            />
+            <View style={s.spacer} />
+            <Button
+              label={saving ? "Saving..." : "Save changes"}
+              onPress={save}
+              color={color}
+              disabled={!changed || saving}
+              icon={<Check size={18} color="#fff" />}
+            />
+          </View>
+          <InfoCard
+            title="Supplier Details"
+            rows={[
+              ["Supplier", item.defaultSupplier || "-"],
+              ["Supplier ID", item.defaultSupplierUnitId || "-"],
+              ["Case Quantity", String(Number(item.defaultSupplierUnitQty) || 0)],
+              ["Case Cost", money(cost)]
+            ]}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <Modal visible={success} transparent animationType="fade">
+        <View style={s.modalBg}>
+          <View style={s.successCard}>
+            <Check size={44} color="#fff" />
+            <Text style={s.successTitle}>Changes saved</Text>
+            <Text style={s.successText}>Returning to scanner...</Text>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+function Editable({
+  label,
+  value,
+  onChangeText,
+  changed,
+  numeric
+}: {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  changed: boolean;
+  numeric?: boolean;
+}) {
+  return (
+    <View style={s.fieldWrap}>
+      <Text style={s.label}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType={numeric ? "decimal-pad" : "default"}
+        style={s.input}
+        returnKeyType="done"
+      />
+      {changed && <Text style={s.diff}>Will update to: {value}</Text>}
+    </View>
+  );
+}
+
+export function AdminScreen({ navigation }: NativeStackScreenProps<RootStackParams, "Admin">) {
+  const { user } = useAuth();
+  const [list, setList] = useState<Employee[]>([]);
+  const [refreshing, setRefreshing] = useState(true);
+  const [mode, setMode] = useState<"add" | "password" | "delete" | null>(null);
+  const [target, setTarget] = useState<Employee | null>(null);
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [pin, setPin] = useState("");
+  const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      setList(await employees());
+    } catch (e) {
+      Alert.alert("Employees", errorMessage(e));
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const close = () => {
+    Keyboard.dismiss();
+    setMode(null);
+    setTarget(null);
+    setName("");
+    setCode("");
+    setPin("");
+    setRole("EMPLOYEE");
+  };
+
+  const submit = async () => {
+    Keyboard.dismiss();
+    try {
+      if (mode === "add") {
+        if (!name.trim() || !/^\d{4}$/.test(code) || !/^\d{4}$/.test(pin))
+          return Alert.alert("Invalid employee", "Enter a name and 4-digit code and password.");
+        await addEmployee({ name: name.trim(), code, password: pin, role });
+      }
+      if (mode === "password" && target) {
+        if (!/^\d{4}$/.test(pin)) return Alert.alert("Invalid password", "Password must be exactly 4 digits.");
+        await changePassword(target.id, pin);
+      }
+      if (mode === "delete" && target) {
+        if (target.id === user?.id) return Alert.alert("Not allowed", "You cannot delete your own account.");
+        await deleteEmployee(target.id);
+      }
+      close();
+      await refresh();
+    } catch (e) {
+      Alert.alert("Admin action failed", errorMessage(e));
+    }
+  };
+
+  return (
+    <SafeAreaView edges={["top"]} style={s.page}>
+      <Header
+        title="Admin Dashboard"
+        back={() => navigation.navigate("Modules")}
+        right={
+          <Pressable onPress={() => setMode("add")} style={[s.smallAction, { backgroundColor: palette.admin }]}>
+            <UserPlus size={16} color="#fff" />
+            <Text style={s.smallActionText}>Add</Text>
+          </Pressable>
+        }
+      />
+      <FlatList
+        data={list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+        contentContainerStyle={s.content}
+        keyExtractor={(e) => String(e.id)}
+        renderItem={({ item }) => (
+          <View style={s.employee}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.employeeName}>{item.name}</Text>
+              <Text style={s.muted}>{item.code} {new Date(item.createdAt).toLocaleDateString()}</Text>
+            </View>
+            <Text
+              style={[
+                s.badge,
+                {
+                  backgroundColor: item.role === "ADMIN" ? "#f3e8ff" : "#ecfdf3",
+                  color: item.role === "ADMIN" ? palette.admin : palette.v2
+                }
+              ]}
+            >
+              {item.role}
+            </Text>
+            <Pressable
+              onPress={() => {
+                setTarget(item);
+                setMode("password");
+              }}
+              style={s.rowIcon}
+            >
+              <KeyRound size={18} color="#475467" />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setTarget(item);
+                setMode("delete");
+              }}
+              style={s.rowIcon}
+            >
+              <Trash2 size={18} color="#b42318" />
+            </Pressable>
+          </View>
+        )}
+      />
+      <Modal visible={mode !== null} transparent animationType="fade">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={s.modalBg}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={s.dialogWrap}>
+              <View style={s.dialog}>
+                {mode === "add" && (
+                  <>
+                    <Text style={s.cardTitle}>Add Employee</Text>
+                    <Field label="Name" value={name} onChangeText={setName} />
+                    <Field label="Code" value={code} onChangeText={(v) => setCode(cleanDigits(v).slice(0, 4))} numeric />
+                    <Field label="Password" value={pin} onChangeText={(v) => setPin(cleanDigits(v).slice(0, 4))} numeric secure />
+                    <View style={s.roleRow}>
+                      {(["EMPLOYEE", "ADMIN"] as const).map((r) => (
+                        <Pressable
+                          key={r}
+                          onPress={() => setRole(r)}
+                          style={[s.roleChoice, role === r && { borderColor: palette.admin, backgroundColor: "#f3e8ff" }]}
+                        >
+                          <Text>{r}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </>
+                )}
+                {mode === "password" && (
+                  <>
+                    <Text style={s.cardTitle}>Update Password</Text>
+                    <Text style={s.muted}>{target?.name}</Text>
+                    <Field label="New 4-digit password" value={pin} onChangeText={(v) => setPin(cleanDigits(v).slice(0, 4))} numeric secure />
+                  </>
+                )}
+                {mode === "delete" && (
+                  <>
+                    <Text style={s.cardTitle}>Delete Employee?</Text>
+                    <Text style={s.muted}>Delete {target?.name}? This cannot be undone.</Text>
+                  </>
+                )}
+                <View style={s.dialogButtons}>
+                  <Button label="Cancel" onPress={close} color="#667085" />
+                  <Button
+                    label={mode === "delete" ? "Delete" : mode === "add" ? "Add" : "Save"}
+                    onPress={submit}
+                    color={mode === "delete" ? "#b42318" : palette.admin}
+                  />
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const s = StyleSheet.create({
+  safeContainer: { flex: 1, backgroundColor: "#f8fafc" },
+  keyboardView: { flex: 1 },
+  page: { flex: 1, backgroundColor: "#f8fafc" },
+  center: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#f8fafc" },
+  loginScroll: { flexGrow: 1, justifyContent: "center", padding: 20 },
+  centerContent: { flexGrow: 1, justifyContent: "center", padding: 20 },
+  content: { padding: 16, gap: 14 },
+  header: { height: 68, backgroundColor: "#fff", borderBottomWidth: 1, borderColor: "#eaecf0", paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#101828" },
+  headerRight: { minWidth: 42, alignItems: "flex-end" },
+  iconButton: { width: 38, height: 38, borderRadius: 8, backgroundColor: "#f2f4f7", alignItems: "center", justifyContent: "center" },
+  loginCard: { backgroundColor: "#fff", padding: 24, borderRadius: 8, gap: 16, shadowColor: "#101828", shadowOpacity: 0.08, shadowRadius: 20, elevation: 3 },
+  portal: { position: "absolute", right: 16, top: 16, zIndex: 2, padding: 8 },
+  brand: { alignItems: "center", gap: 7, marginVertical: 8 },
+  brandMark: { width: 76, height: 76, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  brandTitle: { fontSize: 23, fontWeight: "800", color: "#101828" },
+  muted: { color: "#667085", fontSize: 13 },
+  role: { fontWeight: "800", color: "#344054" },
+  fieldWrap: { gap: 6, marginTop: 8 },
+  label: { fontWeight: "700", fontSize: 13, color: "#344054" },
+  input: { height: 48, borderWidth: 1, borderColor: "#d0d5dd", borderRadius: 7, paddingHorizontal: 13, fontSize: 16, color: "#101828", backgroundColor: "#fff" },
+  readonly: { backgroundColor: "#f2f4f7", color: "#475467" },
+  inputError: { borderColor: "#f04438" },
+  error: { color: "#b42318", fontSize: 12 },
+  button: { height: 50, borderRadius: 7, justifyContent: "center", marginTop: 8 },
+  buttonInner: { flexDirection: "row", gap: 8, justifyContent: "center", alignItems: "center" },
+  buttonText: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  disabled: { opacity: 0.45 },
+  pageTitle: { fontSize: 21, fontWeight: "800", color: "#101828", marginBottom: 2 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  module: { width: "47%", minHeight: 138, borderWidth: 1, borderRadius: 8, backgroundColor: "#fff", padding: 15, justifyContent: "space-between" },
+  moduleIcon: { height: 50, width: 50, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  moduleText: { fontWeight: "800", color: "#344054", fontSize: 14 },
+  soon: { opacity: 0.66 },
+  soonLabel: { fontSize: 9, color: "#98a2b3", fontWeight: "800" },
+  scanCard: { backgroundColor: "#fff", padding: 22, borderRadius: 8, gap: 10, shadowColor: "#101828", shadowOpacity: 0.07, shadowRadius: 15, elevation: 2 },
+  cardTitle: { fontSize: 19, fontWeight: "800", color: "#101828" },
+  spacer: { height: 8 },
+  margin: { fontWeight: "800", fontSize: 13 },
+  or: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 },
+  line: { height: 1, backgroundColor: "#eaecf0", flex: 1 },
+  searchRow: { flexDirection: "row", gap: 8, alignItems: "center" },
+  searchButton: { height: 48, width: 50, borderRadius: 7, alignItems: "center", justifyContent: "center" },
+  smallAction: { height: 36, borderRadius: 7, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 5 },
+  smallActionText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  hero: { borderRadius: 8, padding: 22, gap: 8 },
+  heroLabel: { color: "#dbeafe", fontSize: 12, fontWeight: "800" },
+  heroValue: { fontSize: 38, color: "#fff", fontWeight: "900" },
+  heroSub: { fontSize: 16, fontWeight: "700" },
+  heroHint: { alignSelf: "flex-start", backgroundColor: "#ffffff30", padding: 7, borderRadius: 6, color: "#fff", fontWeight: "700", fontSize: 12 },
+  infoCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#eaecf0", borderRadius: 8, padding: 16, gap: 10 },
+  infoTitle: { fontSize: 14, fontWeight: "900", color: "#475467", textTransform: "uppercase" },
+  infoRow: { borderTopWidth: 1, borderColor: "#f2f4f7", paddingTop: 10, gap: 3 },
+  infoKey: { fontSize: 12, fontWeight: "700", color: "#667085" },
+  infoValue: { fontSize: 15, fontWeight: "700", color: "#101828" },
+  cardLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  salesGrid: { flexDirection: "row", gap: 8 },
+  saleTile: { flex: 1, borderWidth: 1, borderRadius: 7, alignItems: "center", paddingVertical: 12, gap: 4 },
+  saleValue: { fontSize: 22, fontWeight: "900" },
+  saleLabel: { fontSize: 11, color: "#667085", fontWeight: "700" },
+  diff: { fontSize: 12, color: "#027a48", fontWeight: "700" },
+  modalBg: { flex: 1, backgroundColor: "#10182899", justifyContent: "center", padding: 22 },
+  dialogWrap: { justifyContent: "center" },
+  successCard: { backgroundColor: palette.v2, borderRadius: 8, padding: 28, alignItems: "center", gap: 10 },
+  successTitle: { fontSize: 21, fontWeight: "900", color: "#fff" },
+  successText: { color: "#d1fadf" },
+  employee: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#eaecf0", borderRadius: 8, padding: 14, flexDirection: "row", alignItems: "center", gap: 8 },
+  employeeName: { fontWeight: "800", fontSize: 16, color: "#101828" },
+  badge: { fontSize: 10, fontWeight: "900", paddingHorizontal: 7, paddingVertical: 5, borderRadius: 6, overflow: "hidden" },
+  rowIcon: { padding: 6 },
+  dialog: { backgroundColor: "#fff", borderRadius: 8, padding: 20, gap: 10 },
+  dialogButtons: { flexDirection: "row", gap: 10, marginTop: 10 },
+  roleRow: { flexDirection: "row", gap: 8 },
+  roleChoice: { borderWidth: 1, borderColor: "#d0d5dd", padding: 12, borderRadius: 7, flex: 1, alignItems: "center" }
+});
 
 const ui = StyleSheet.create({
   header: { height: 74, paddingHorizontal: 20, borderBottomColor: "#eef2f6" },
