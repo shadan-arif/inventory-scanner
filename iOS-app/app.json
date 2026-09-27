@@ -1,9 +1,10 @@
 {
   "expo": {
-    "name": "LAMS Inventory Scanner",
-    "slug": "lams-inventory-scanner",
+    "name": "Lams IMS",
+    "slug": "lams-ims",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
 
     "ios": {
