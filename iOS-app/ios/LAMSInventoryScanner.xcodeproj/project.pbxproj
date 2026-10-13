@@ -21,7 +21,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LAMSInventoryScanner/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LAMSInventoryScanner/Info.plist; sourceTree = "<group>"; };
 		2C3418DBA0E7175F74E0CA79 /* libPods-LAMSInventoryScanner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LAMSInventoryScanner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		449A7C30BA7E34D79D435A1F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LAMSInventoryScanner/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		449A7C30BA7E34D79D435A1F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = LAMSInventoryScanner/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5A82C0A8A820C4242C9A65D1 /* Pods-LAMSInventoryScanner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LAMSInventoryScanner.debug.xcconfig"; path = "Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner.debug.xcconfig"; sourceTree = "<group>"; };
 		8681023072EAF974220F36E0 /* Pods-LAMSInventoryScanner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LAMSInventoryScanner.release.xcconfig"; path = "Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LAMSInventoryScanner/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -119,7 +119,6 @@
 				5A82C0A8A820C4242C9A65D1 /* Pods-LAMSInventoryScanner.debug.xcconfig */,
 				8681023072EAF974220F36E0 /* Pods-LAMSInventoryScanner.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -167,7 +166,6 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
-						DevelopmentTeam = "RR8N626SW2";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -358,7 +356,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LAMSInventoryScanner/LAMSInventoryScanner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3Q2N7777X9;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -385,9 +386,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
-				DEVELOPMENT_TEAM = "RR8N626SW2";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
@@ -398,7 +396,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LAMSInventoryScanner/LAMSInventoryScanner.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3Q2N7777X9;
 				INFOPLIST_FILE = LAMSInventoryScanner/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -419,9 +420,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
-				DEVELOPMENT_TEAM = "RR8N626SW2";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};
