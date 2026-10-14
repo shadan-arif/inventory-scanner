@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0CBECDA2AE40616646E56168 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E5F65F799BC9872DCEAF0D /* ExpoModulesProvider.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		296B8FB9B6784C74CE29BBA1 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E744131D806748DF5A67B675 /* ExpoModulesProvider.swift */; };
-		2DE879E70659AFFF00635289 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 449A7C30BA7E34D79D435A1F /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		8D3B694E0B0452D4385010AB /* libPods-LAMSInventoryScanner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C3418DBA0E7175F74E0CA79 /* libPods-LAMSInventoryScanner.a */; };
+		763974F280F2382E0E1D9E17 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3F054598D336164F3EC2D322 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		CD59BDEC4987A175277925F6 /* libPods-LamsIMS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 996A64B6B0AF85CCB3DDEB5E /* libPods-LamsIMS.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* LAMSInventoryScanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LAMSInventoryScanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LAMSInventoryScanner/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LAMSInventoryScanner/Info.plist; sourceTree = "<group>"; };
-		2C3418DBA0E7175F74E0CA79 /* libPods-LAMSInventoryScanner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LAMSInventoryScanner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		449A7C30BA7E34D79D435A1F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = LAMSInventoryScanner/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		5A82C0A8A820C4242C9A65D1 /* Pods-LAMSInventoryScanner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LAMSInventoryScanner.debug.xcconfig"; path = "Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner.debug.xcconfig"; sourceTree = "<group>"; };
-		8681023072EAF974220F36E0 /* Pods-LAMSInventoryScanner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LAMSInventoryScanner.release.xcconfig"; path = "Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner.release.xcconfig"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LAMSInventoryScanner/SplashScreen.storyboard; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* LamsIMS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LamsIMS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LamsIMS/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LamsIMS/Info.plist; sourceTree = "<group>"; };
+		15E5F65F799BC9872DCEAF0D /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LamsIMS/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		2618299492054D102774BD21 /* Pods-LamsIMS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LamsIMS.debug.xcconfig"; path = "Target Support Files/Pods-LamsIMS/Pods-LamsIMS.debug.xcconfig"; sourceTree = "<group>"; };
+		3F054598D336164F3EC2D322 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = LamsIMS/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		996A64B6B0AF85CCB3DDEB5E /* libPods-LamsIMS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LamsIMS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LamsIMS/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E744131D806748DF5A67B675 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LAMSInventoryScanner/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		D6F0E39E2D82A4BB20F611C3 /* Pods-LamsIMS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LamsIMS.release.xcconfig"; path = "Target Support Files/Pods-LamsIMS/Pods-LamsIMS.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LAMSInventoryScanner/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* LAMSInventoryScanner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LAMSInventoryScanner-Bridging-Header.h"; path = "LAMSInventoryScanner/LAMSInventoryScanner-Bridging-Header.h"; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LamsIMS/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* LamsIMS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LamsIMS-Bridging-Header.h"; path = "LamsIMS/LamsIMS-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,50 +37,34 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D3B694E0B0452D4385010AB /* libPods-LAMSInventoryScanner.a in Frameworks */,
+				CD59BDEC4987A175277925F6 /* libPods-LamsIMS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* LAMSInventoryScanner */ = {
+		13B07FAE1A68108700A75B9A /* LamsIMS */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* LAMSInventoryScanner-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* LamsIMS-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				449A7C30BA7E34D79D435A1F /* PrivacyInfo.xcprivacy */,
+				3F054598D336164F3EC2D322 /* PrivacyInfo.xcprivacy */,
 			);
-			name = LAMSInventoryScanner;
+			name = LamsIMS;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				2C3418DBA0E7175F74E0CA79 /* libPods-LAMSInventoryScanner.a */,
+				996A64B6B0AF85CCB3DDEB5E /* libPods-LamsIMS.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		6265CF4C2C946CDE07ACD4B9 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				69F678E0E9C5FDEFB4C92CAF /* LAMSInventoryScanner */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
-		69F678E0E9C5FDEFB4C92CAF /* LAMSInventoryScanner */ = {
-			isa = PBXGroup;
-			children = (
-				E744131D806748DF5A67B675 /* ExpoModulesProvider.swift */,
-			);
-			name = LAMSInventoryScanner;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -93,12 +77,12 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* LAMSInventoryScanner */,
+				13B07FAE1A68108700A75B9A /* LamsIMS */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				8643113DCCEEACB5BEFA36D3 /* Pods */,
-				6265CF4C2C946CDE07ACD4B9 /* ExpoModulesProviders */,
+				DB94B15A773C5CCCA5300F91 /* Pods */,
+				8613AF067ADF7D880763F986 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -108,18 +92,25 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* LAMSInventoryScanner.app */,
+				13B07F961A680F5B00A75B9A /* LamsIMS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8643113DCCEEACB5BEFA36D3 /* Pods */ = {
+		8613AF067ADF7D880763F986 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				5A82C0A8A820C4242C9A65D1 /* Pods-LAMSInventoryScanner.debug.xcconfig */,
-				8681023072EAF974220F36E0 /* Pods-LAMSInventoryScanner.release.xcconfig */,
+				AE8A702BCFB2C6BC7F27C203 /* LamsIMS */,
 			);
-			path = Pods;
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		AE8A702BCFB2C6BC7F27C203 /* LamsIMS */ = {
+			isa = PBXGroup;
+			children = (
+				15E5F65F799BC9872DCEAF0D /* ExpoModulesProvider.swift */,
+			);
+			name = LamsIMS;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -128,32 +119,41 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = LAMSInventoryScanner/Supporting;
+			path = LamsIMS/Supporting;
+			sourceTree = "<group>";
+		};
+		DB94B15A773C5CCCA5300F91 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				2618299492054D102774BD21 /* Pods-LamsIMS.debug.xcconfig */,
+				D6F0E39E2D82A4BB20F611C3 /* Pods-LamsIMS.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* LAMSInventoryScanner */ = {
+		13B07F861A680F5B00A75B9A /* LamsIMS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LAMSInventoryScanner" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LamsIMS" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				770C23D9E96C9EA0953E7483 /* [Expo] Configure project */,
+				676BECE98F0DB74736876B53 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				F97C1A75FC58B39B99F65178 /* [CP] Embed Pods Frameworks */,
+				0FF31CA27709C0FA41719C92 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = LAMSInventoryScanner;
-			productName = LAMSInventoryScanner;
-			productReference = 13B07F961A680F5B00A75B9A /* LAMSInventoryScanner.app */;
+			name = LamsIMS;
+			productName = LamsIMS;
+			productReference = 13B07F961A680F5B00A75B9A /* LamsIMS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -166,11 +166,10 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "LAMSInventoryScanner" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "LamsIMS" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -183,7 +182,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* LAMSInventoryScanner */,
+				13B07F861A680F5B00A75B9A /* LamsIMS */,
 			);
 		};
 /* End PBXProject section */
@@ -196,7 +195,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				2DE879E70659AFFF00635289 /* PrivacyInfo.xcprivacy in Resources */,
+				763974F280F2382E0E1D9E17 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,74 +234,20 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-LAMSInventoryScanner-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-LamsIMS-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		770C23D9E96C9EA0953E7483 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.xcode.env",
-				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/LAMSInventoryScanner/LAMSInventoryScanner.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-LAMSInventoryScanner/expo-configure-project.sh",
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-LAMSInventoryScanner/ExpoModulesProvider.swift",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-LAMSInventoryScanner/expo-configure-project.sh\"\n";
-		};
-		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
+		0FF31CA27709C0FA41719C92 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React-timing_privacy.bundle",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-timing_privacy.bundle",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F97C1A75FC58B39B99F65178 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-LamsIMS/Pods-LamsIMS-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoCamera/ExpoCamera.framework/ExpoCamera",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoCameraBarcodeScanning/ExpoCameraBarcodeScanning.framework/ExpoCameraBarcodeScanning",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoCameraBarcodeScanning/ZXingObjC.framework/ZXingObjC",
@@ -331,7 +276,61 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LAMSInventoryScanner/Pods-LAMSInventoryScanner-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LamsIMS/Pods-LamsIMS-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		676BECE98F0DB74736876B53 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/LamsIMS/LamsIMS.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-LamsIMS/expo-configure-project.sh",
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-LamsIMS/ExpoModulesProvider.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-LamsIMS/expo-configure-project.sh\"\n";
+		};
+		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LamsIMS/Pods-LamsIMS-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React-timing_privacy.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-timing_privacy.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LamsIMS/Pods-LamsIMS-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -342,7 +341,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				296B8FB9B6784C74CE29BBA1 /* ExpoModulesProvider.swift in Sources */,
+				0CBECDA2AE40616646E56168 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,13 +350,11 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5A82C0A8A820C4242C9A65D1 /* Pods-LAMSInventoryScanner.debug.xcconfig */;
+			baseConfigurationReference = 2618299492054D102774BD21 /* Pods-LamsIMS.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = LAMSInventoryScanner/LAMSInventoryScanner.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = LamsIMS/LamsIMS.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3Q2N7777X9;
 				ENABLE_BITCODE = NO;
@@ -365,14 +362,14 @@
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = LAMSInventoryScanner/Info.plist;
+				INFOPLIST_FILE = LamsIMS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -380,8 +377,8 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lams.inventoryscanner;
-				PRODUCT_NAME = LAMSInventoryScanner;
-				SWIFT_OBJC_BRIDGING_HEADER = "LAMSInventoryScanner/LAMSInventoryScanner-Bridging-Header.h";
+				PRODUCT_NAME = LamsIMS;
+				SWIFT_OBJC_BRIDGING_HEADER = "LamsIMS/LamsIMS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -391,23 +388,21 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8681023072EAF974220F36E0 /* Pods-LAMSInventoryScanner.release.xcconfig */;
+			baseConfigurationReference = D6F0E39E2D82A4BB20F611C3 /* Pods-LamsIMS.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = LAMSInventoryScanner/LAMSInventoryScanner.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = LamsIMS/LamsIMS.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3Q2N7777X9;
-				INFOPLIST_FILE = LAMSInventoryScanner/Info.plist;
+				INFOPLIST_FILE = LamsIMS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -415,8 +410,8 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lams.inventoryscanner;
-				PRODUCT_NAME = LAMSInventoryScanner;
-				SWIFT_OBJC_BRIDGING_HEADER = "LAMSInventoryScanner/LAMSInventoryScanner-Bridging-Header.h";
+				PRODUCT_NAME = LamsIMS;
+				SWIFT_OBJC_BRIDGING_HEADER = "LamsIMS/LamsIMS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -562,7 +557,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LAMSInventoryScanner" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LamsIMS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -571,7 +566,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "LAMSInventoryScanner" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "LamsIMS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

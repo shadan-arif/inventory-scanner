@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import {
   clearToken,
+  fetchRemoteBaseUrl,
+  initApiBaseUrl,
   login as requestLogin,
   logout as requestLogout,
   me,
@@ -25,6 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        // First restore or load the active API base URL
+        await initApiBaseUrl();
+        // Background check for centralized updated API URL
+        fetchRemoteBaseUrl().catch(() => {});
+
         const { token, user: cachedUser } = await restoreSession();
         if (token) {
           if (cachedUser) {

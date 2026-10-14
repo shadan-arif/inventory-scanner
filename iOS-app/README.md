@@ -36,7 +36,7 @@ iOS-app/
 The API URL has one central configuration point. The default is the currently running local Next.js server:
 
 ```env
-EXPO_PUBLIC_API_BASE_URL=http://localhost:9000
+EXPO_PUBLIC_API_BASE_URL=https://192.168.0.81:9000
 ```
 
 Create `iOS-app/.env` with the required value. `.env` is intentionally ignored by Git. The full template and device guidance are in `.env.example`.

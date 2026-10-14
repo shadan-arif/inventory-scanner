@@ -10,10 +10,91 @@ console.log(
   process.env.EXPO_PUBLIC_API_BASE_URL
 );
 
-export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:9000";
+export const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://192.168.0.81:9000";
+export let BASE_URL = DEFAULT_BASE_URL;
+
+const URL_KEY = "lams_api_base_url";
 const TOKEN_KEY = "lams_session_jwt";
 const USER_KEY = "lams_session_user";
 let sessionToken: string | null = null;
+
+async function readStoredUrl(): Promise<string | null> {
+  if (Platform.OS === "web") return typeof localStorage === "undefined" ? null : localStorage.getItem(URL_KEY);
+  return SecureStore.getItemAsync(URL_KEY);
+}
+
+async function writeStoredUrl(url: string) {
+  if (Platform.OS === "web") { localStorage.setItem(URL_KEY, url); return; }
+  await SecureStore.setItemAsync(URL_KEY, url);
+}
+
+async function removeStoredUrl() {
+  if (Platform.OS === "web") { localStorage.removeItem(URL_KEY); return; }
+  await SecureStore.deleteItemAsync(URL_KEY);
+}
+
+export function getCurrentBaseUrl(): string {
+  return BASE_URL;
+}
+
+export function setApiBaseUrl(newUrl: string): string {
+  const sanitized = newUrl.trim().replace(/\/+$/, "");
+  BASE_URL = sanitized;
+  api.defaults.baseURL = sanitized;
+  console.log("Updated API BASE_URL to:", sanitized);
+  return sanitized;
+}
+
+export async function initApiBaseUrl(): Promise<string> {
+  try {
+    const savedUrl = await readStoredUrl();
+    if (savedUrl) {
+      setApiBaseUrl(savedUrl);
+    }
+  } catch (err) {
+    console.warn("Failed to read stored API URL:", err);
+  }
+  return BASE_URL;
+}
+
+export async function saveAndApplyBaseUrl(newUrl: string): Promise<string> {
+  const sanitized = setApiBaseUrl(newUrl);
+  await writeStoredUrl(sanitized);
+  return sanitized;
+}
+
+export async function resetBaseUrlToDefault(): Promise<string> {
+  setApiBaseUrl(DEFAULT_BASE_URL);
+  await removeStoredUrl();
+  return DEFAULT_BASE_URL;
+}
+
+export async function fetchRemoteBaseUrl(): Promise<string | null> {
+  try {
+    const response = await api.get("/api/settings/api-url", { timeout: 4000 });
+    if (response.data?.success && response.data?.url) {
+      const remoteUrl = response.data.url;
+      if (remoteUrl && remoteUrl !== BASE_URL) {
+        await saveAndApplyBaseUrl(remoteUrl);
+      }
+      return remoteUrl;
+    }
+  } catch (err) {
+    // If not reachable or error, keep current URL
+    console.log("Remote URL fetch skipped/failed:", err);
+  }
+  return null;
+}
+
+export async function updateRemoteBaseUrl(newUrl: string): Promise<string> {
+  const sanitized = newUrl.trim().replace(/\/+$/, "");
+  const response = await api.put("/api/settings/api-url", { url: sanitized });
+  if (!response.data?.success) {
+    throw new Error(response.data?.message || "Failed to update central API URL");
+  }
+  await saveAndApplyBaseUrl(sanitized);
+  return sanitized;
+}
 
 async function readStoredToken() {
   if (Platform.OS === "web") return typeof localStorage === "undefined" ? null : localStorage.getItem(TOKEN_KEY);

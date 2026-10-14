@@ -54,13 +54,19 @@ import {
   deleteEmployee,
   Employee,
   employees,
+  fetchRemoteBaseUrl,
+  getCurrentBaseUrl,
   getItem,
   getMargin,
   getSales,
+  initApiBaseUrl,
   Item,
   putMargin,
+  resetBaseUrlToDefault,
+  saveAndApplyBaseUrl,
   saveItem,
-  Sales
+  Sales,
+  updateRemoteBaseUrl
 } from "../services/api";
 import { useAuth } from "../state/AuthContext";
 import { BarcodeScanner } from "../components/BarcodeScanner";
@@ -157,6 +163,66 @@ export function LoginScreen({ navigation }: Nav) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // API URL config state
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [apiUrl, setApiUrl] = useState(getCurrentBaseUrl());
+  const [savingUrl, setSavingUrl] = useState(false);
+
+  useEffect(() => {
+    setApiUrl(getCurrentBaseUrl());
+  }, [showUrlModal]);
+
+  const handleSaveUrl = async (syncAll: boolean) => {
+    const trimmed = apiUrl.trim().replace(/\/+$/, "");
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+      return Toast.show({
+        type: "error",
+        text1: "Invalid URL",
+        text2: "URL must begin with http:// or https://"
+      });
+    }
+
+    setSavingUrl(true);
+    try {
+      if (syncAll) {
+        // First temporarily switch local URL so we can communicate with server to update DB
+        await saveAndApplyBaseUrl(trimmed);
+        await updateRemoteBaseUrl(trimmed);
+        Toast.show({
+          type: "success",
+          text1: "URL Updated Globally",
+          text2: "Updated server and all connected apps will sync this URL."
+        });
+      } else {
+        await saveAndApplyBaseUrl(trimmed);
+        Toast.show({
+          type: "success",
+          text1: "URL Updated Locally",
+          text2: `Base URL set to ${trimmed}`
+        });
+      }
+      setShowUrlModal(false);
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: syncAll ? "Global sync failed" : "Failed to update URL",
+        text2: apiErrorMessage(e)
+      });
+    } finally {
+      setSavingUrl(false);
+    }
+  };
+
+  const handleResetUrl = async () => {
+    const def = await resetBaseUrlToDefault();
+    setApiUrl(def);
+    Toast.show({
+      type: "info",
+      text1: "URL Reset",
+      text2: `Reset to default (${def})`
+    });
+  };
+
   const submit = async () => {
     Keyboard.dismiss();
     if (!/^\d{4}$/.test(code) || !/^\d{4}$/.test(password)) {
@@ -175,7 +241,7 @@ export function LoginScreen({ navigation }: Nav) {
       Toast.show({
         type: "error",
         text1: "Login failed",
-        text2: errorMessage(e),
+        text2: apiErrorMessage(e),
         visibilityTime: 7000
       });
     } finally {
@@ -195,6 +261,15 @@ export function LoginScreen({ navigation }: Nav) {
           showsVerticalScrollIndicator={false}
         >
           <View style={s.loginCard}>
+            {/* Top action icons: Server Settings (left) & Admin Toggle (right) */}
+            <Pressable
+              onPress={() => setShowUrlModal(true)}
+              style={s.settingsPortal}
+              accessibilityLabel="Server Settings"
+            >
+              <Settings size={20} color="#667085" />
+            </Pressable>
+
             <Pressable
               onPress={() => {
                 setAdmin(!admin);
@@ -202,6 +277,7 @@ export function LoginScreen({ navigation }: Nav) {
                 setPassword("");
               }}
               style={s.portal}
+              accessibilityLabel="Admin Portal Toggle"
             >
               <UserCog size={20} color={admin ? palette.admin : "#667085"} />
             </Pressable>
@@ -231,9 +307,82 @@ export function LoginScreen({ navigation }: Nav) {
               disabled={loading}
               icon={loading ? <ActivityIndicator color="#fff" /> : <LogIn color="#fff" size={18} />}
             />
+
+            <Pressable
+              onPress={() => setShowUrlModal(true)}
+              style={{ alignItems: "center", marginTop: 4 }}
+            >
+              <Text style={{ fontSize: 12, color: "#667085", textDecorationLine: "underline" }} numberOfLines={1}>
+                Server: {getCurrentBaseUrl()}
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Server URL Modal */}
+      <Modal visible={showUrlModal} transparent animationType="fade" onRequestClose={() => setShowUrlModal(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.modalBg}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={s.dialogWrap}>
+              <View style={s.dialog}>
+                <Text style={s.cardTitle}>Configure Server URL</Text>
+                <Text style={s.muted}>
+                  Set the backend API endpoint. You can apply it locally or broadcast it to update all user devices.
+                </Text>
+
+                <View style={s.fieldWrap}>
+                  <Text style={s.label}>API Base URL</Text>
+                  <TextInput
+                    value={apiUrl}
+                    onChangeText={setApiUrl}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="https://192.168.0.81:9000"
+                    placeholderTextColor="#98a2b3"
+                    style={[s.input, ui.input]}
+                  />
+                </View>
+
+                <View style={{ gap: 8, marginTop: 12 }}>
+                  <Button
+                    label={savingUrl ? "Updating..." : "Update for All Users (Broadcast)"}
+                    onPress={() => handleSaveUrl(true)}
+                    color={palette.wholesale}
+                    disabled={savingUrl}
+                  />
+
+                  <Button
+                    label="Apply to This Device Only"
+                    onPress={() => handleSaveUrl(false)}
+                    color="#475467"
+                    disabled={savingUrl}
+                  />
+
+                  <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+                    <View style={{ flex: 1 }}>
+                      <Button
+                        label="Reset Default"
+                        onPress={handleResetUrl}
+                        color="#98a2b3"
+                        disabled={savingUrl}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Button
+                        label="Close"
+                        onPress={() => setShowUrlModal(false)}
+                        color="#667085"
+                        disabled={savingUrl}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -959,6 +1108,7 @@ const s = StyleSheet.create({
   iconButton: { width: 38, height: 38, borderRadius: 8, backgroundColor: "#f2f4f7", alignItems: "center", justifyContent: "center" },
   loginCard: { backgroundColor: "#fff", padding: 24, borderRadius: 8, gap: 16, shadowColor: "#101828", shadowOpacity: 0.08, shadowRadius: 20, elevation: 3 },
   portal: { position: "absolute", right: 16, top: 16, zIndex: 2, padding: 8 },
+  settingsPortal: { position: "absolute", left: 16, top: 16, zIndex: 2, padding: 8 },
   brand: { alignItems: "center", gap: 7, marginVertical: 8 },
   brandMark: { width: 76, height: 76, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   brandTitle: { fontSize: 23, fontWeight: "800", color: "#101828" },
