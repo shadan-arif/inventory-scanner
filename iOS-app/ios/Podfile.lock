@@ -33,6 +33,8 @@ PODS:
     - ExpoModulesCore
   - ExpoCameraBarcodeScanning (57.0.5):
     - ExpoCamera
+    - ZXingObjC/OneD
+    - ZXingObjC/PDF417
   - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
   - ExpoFileSystem (57.0.7):
@@ -2083,21 +2085,26 @@ PODS:
     - ReactNativeDependencies
     - Yoga
   - Yoga (0.0.0)
+  - ZXingObjC/Core (3.6.9)
+  - ZXingObjC/OneD (3.6.9):
+    - ZXingObjC/Core
+  - ZXingObjC/PDF417 (3.6.9):
+    - ZXingObjC/Core
 
 DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
-  - ExpoCamera (from `../node_modules/expo-camera/ios/ExpoCamera.podspec`)
-  - ExpoCameraBarcodeScanning (from `../node_modules/expo-camera/ios/ExpoCameraBarcodeScanning.podspec`)
+  - ExpoCamera (from `../node_modules/expo-camera/ios`)
+  - ExpoCameraBarcodeScanning (from `../node_modules/expo-camera/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
-  - ExpoFileSystem (from `../node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)
-  - ExpoFont (from `../node_modules/expo-font/ios/ExpoFont.podspec`)
+  - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
+  - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
-  - ExpoModulesCore (from `../node_modules/expo/node_modules/expo-modules-core/ExpoModulesCore.podspec`)
+  - ExpoModulesCore (from `../node_modules/expo/node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
-  - ExpoModulesWorklets (from `../node_modules/expo/node_modules/expo-modules-core/ExpoModulesWorklets.podspec`)
+  - ExpoModulesWorklets (from `../node_modules/expo/node_modules/expo-modules-core`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2180,6 +2187,10 @@ DEPENDENCIES:
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
+SPEC REPOS:
+  trunk:
+    - ZXingObjC
+
 EXTERNAL SOURCES:
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
@@ -2188,25 +2199,25 @@ EXTERNAL SOURCES:
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
   ExpoCamera:
-    :podspec: "../node_modules/expo-camera/ios/ExpoCamera.podspec"
+    :path: "../node_modules/expo-camera/ios"
   ExpoCameraBarcodeScanning:
-    :podspec: "../node_modules/expo-camera/ios/ExpoCameraBarcodeScanning.podspec"
+    :path: "../node_modules/expo-camera/ios"
   ExpoDomWebView:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
-    :podspec: "../node_modules/expo-file-system/ios/ExpoFileSystem.podspec"
+    :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
-    :podspec: "../node_modules/expo-font/ios/ExpoFont.podspec"
+    :path: "../node_modules/expo-font/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoLogBox:
     :path: "../node_modules/@expo/log-box"
   ExpoModulesCore:
-    :podspec: "../node_modules/expo/node_modules/expo-modules-core/ExpoModulesCore.podspec"
+    :path: "../node_modules/expo/node_modules/expo-modules-core"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
-    :podspec: "../node_modules/expo/node_modules/expo-modules-core/ExpoModulesWorklets.podspec"
+    :path: "../node_modules/expo/node_modules/expo-modules-core"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
   FBLazyVector:
@@ -2380,7 +2391,7 @@ SPEC CHECKSUMS:
   ExpoFont: f8198a952ba2ff53c9b393b5269ea435f232cfc3
   ExpoKeepAwake: 72af0b3be3615e59bc819d26061ff4e06b155ee0
   ExpoLogBox: 80957303325cd4439137765c90a87d7f22aaf2ff
-  ExpoModulesCore: 6476a3be101c3b3c2de74eb950be19552d0fce4f
+  ExpoModulesCore: 67b2bca48c36995226fae75d8d5228957ab62df7
   ExpoModulesJSI: 383849017851b1ebacbd78cfaa32b18b6152585e
   ExpoModulesWorklets: 8c9a7e3572a420e3e7f93f98453da9c9175edf88
   ExpoSecureStore: ff1fd5e073957417ba8f9dec0bebcbd55a60e747
@@ -2463,6 +2474,7 @@ SPEC CHECKSUMS:
   RNScreens: 7118cd7715c226856125b5bece3c4d9abec90356
   RNSVG: 3fe8590403ac9f107b4d14591bc6e54da4894e5c
   Yoga: 18b74b3ade30bebc1904004dfaceae1dd02a330a
+  ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
 PODFILE CHECKSUM: f2b6235aa2db9e02579ef54e990ee4ae1198820a
 

@@ -16,6 +16,7 @@ export let BASE_URL = DEFAULT_BASE_URL;
 const URL_KEY = "lams_api_base_url";
 const TOKEN_KEY = "lams_session_jwt";
 const USER_KEY = "lams_session_user";
+const LAST_ACTIVE_KEY = "lams_last_active_ts";
 let sessionToken: string | null = null;
 
 async function readStoredUrl(): Promise<string | null> {
@@ -218,6 +219,63 @@ export async function me() {
   return user;
 }
 export async function logout() { try { await api.post("/api/auth/logout"); } finally { await clearToken(); } }
+
+// ─── Last-activity timestamp (for idle auto-logout) ──────────────────────────
+
+async function writeLastActive(ts: number) {
+  const raw = String(ts);
+  if (Platform.OS === "web") { localStorage.setItem(LAST_ACTIVE_KEY, raw); return; }
+  await SecureStore.setItemAsync(LAST_ACTIVE_KEY, raw);
+}
+
+async function readLastActive(): Promise<number | null> {
+  try {
+    const raw = Platform.OS === "web"
+      ? (typeof localStorage === "undefined" ? null : localStorage.getItem(LAST_ACTIVE_KEY))
+      : await SecureStore.getItemAsync(LAST_ACTIVE_KEY);
+    return raw ? Number(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function removeLastActive() {
+  if (Platform.OS === "web") { localStorage.removeItem(LAST_ACTIVE_KEY); return; }
+  await SecureStore.deleteItemAsync(LAST_ACTIVE_KEY);
+}
+
+/** Call this whenever the user interacts with the app. */
+export async function touchActivity() {
+  await writeLastActive(Date.now());
+}
+
+/** Returns the epoch ms of the last recorded activity, or null. */
+export async function getLastActive(): Promise<number | null> {
+  return readLastActive();
+}
+
+/** Clears the stored activity timestamp (called on logout). */
+export async function clearActivity() {
+  await removeLastActive();
+}
+
+// ─── Session-timeout setting ──────────────────────────────────────────────────
+
+export async function getSessionTimeout(): Promise<number> {
+  try {
+    const res = await api.get("/api/settings/session-timeout", { timeout: 5000 });
+    if (res.data?.success) return Number(res.data.timeoutMinutes) || 10;
+  } catch {
+    // fall through to default
+  }
+  return 10;
+}
+
+export async function putSessionTimeout(minutes: number): Promise<number> {
+  const res = await api.put("/api/settings/session-timeout", { timeoutMinutes: minutes });
+  if (!res.data?.success) throw new Error(res.data?.message || "Failed to update timeout");
+  return Number(res.data.timeoutMinutes);
+}
 
 export type Role = "ADMIN" | "EMPLOYEE";
 export type User = { id: number; code: string; name: string; role: Role };

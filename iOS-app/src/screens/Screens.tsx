@@ -59,9 +59,11 @@ import {
   getItem,
   getMargin,
   getSales,
+  getSessionTimeout,
   initApiBaseUrl,
   Item,
   putMargin,
+  putSessionTimeout,
   resetBaseUrlToDefault,
   saveAndApplyBaseUrl,
   saveItem,
@@ -399,7 +401,7 @@ const modules = [
 ] as const;
 
 export function ModulesScreen({ navigation }: Nav) {
-  const { user, logout } = useAuth();
+  const { user, logout, recordActivity } = useAuth();
   const [showLogs, setShowLogs] = useState(false);
   const leave = async () => {
     await logout();
@@ -430,7 +432,7 @@ export function ModulesScreen({ navigation }: Nav) {
             <Pressable
               key={label}
               disabled={!route}
-              onPress={() => route && navigation.navigate(route as any)}
+              onPress={() => { recordActivity(); route && navigation.navigate(route as any); }}
               style={[
                 s.module,
                 { borderColor: tone === "soon" ? "#eaecf0" : `${palette[tone as keyof typeof palette]}55` },
@@ -933,6 +935,10 @@ export function AdminScreen({ navigation }: NativeStackScreenProps<RootStackPara
   const [pin, setPin] = useState("");
   const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
 
+  // Session timeout state
+  const [timeoutMinutes, setTimeoutMinutes] = useState("");
+  const [savingTimeout, setSavingTimeout] = useState(false);
+
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -946,7 +952,29 @@ export function AdminScreen({ navigation }: NativeStackScreenProps<RootStackPara
 
   useEffect(() => {
     refresh();
+    // Load current session timeout setting
+    getSessionTimeout()
+      .then((m) => setTimeoutMinutes(String(m)))
+      .catch(() => setTimeoutMinutes("10"));
   }, [refresh]);
+
+  const saveTimeout = async () => {
+    Keyboard.dismiss();
+    const value = Number(timeoutMinutes);
+    if (!Number.isFinite(value) || value < 1 || value > 480) {
+      return Alert.alert("Invalid timeout", "Enter a number between 1 and 480 minutes.");
+    }
+    setSavingTimeout(true);
+    try {
+      const saved = await putSessionTimeout(value);
+      setTimeoutMinutes(String(saved));
+      Toast.show({ type: "success", text1: "Timeout updated", text2: `Auto-logout after ${saved} minute${saved !== 1 ? "s" : ""} of inactivity.` });
+    } catch (e) {
+      Alert.alert("Save failed", errorMessage(e));
+    } finally {
+      setSavingTimeout(false);
+    }
+  };
 
   const close = () => {
     Keyboard.dismiss();
@@ -998,6 +1026,37 @@ export function AdminScreen({ navigation }: NativeStackScreenProps<RootStackPara
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         contentContainerStyle={s.content}
         keyExtractor={(e) => String(e.id)}
+        ListHeaderComponent={
+          <View style={[s.infoCard, { marginBottom: 4 }]}>
+            <Text style={s.infoTitle}>Session Timeout</Text>
+            <Text style={[s.muted, { marginBottom: 4 }]}>
+              Auto-logout idle users after this many minutes. Applied to all iOS app sessions.
+            </Text>
+            <View style={s.searchRow}>
+              <TextInput
+                value={timeoutMinutes}
+                onChangeText={(v) => setTimeoutMinutes(v.replace(/\D/g, ""))}
+                keyboardType="number-pad"
+                style={[s.input, { flex: 1 }]}
+                placeholder="e.g. 10"
+                returnKeyType="done"
+                onSubmitEditing={saveTimeout}
+              />
+              <Pressable
+                onPress={saveTimeout}
+                disabled={savingTimeout}
+                style={[s.searchButton, { backgroundColor: palette.admin }]}
+              >
+                {savingTimeout
+                  ? <ActivityIndicator color="#fff" />
+                  : <Check size={20} color="#fff" />}
+              </Pressable>
+            </View>
+            <Text style={[s.muted, { marginTop: 2 }]}>
+              Current: {timeoutMinutes || "—"} min{Number(timeoutMinutes) !== 1 ? "s" : ""}
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View style={s.employee}>
             <View style={{ flex: 1 }}>

@@ -1,28 +1,81 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { AppState, AppStateStatus } from "react-native";
 import {
+  clearActivity,
   clearToken,
   fetchRemoteBaseUrl,
+  getLastActive,
+  getSessionTimeout,
   initApiBaseUrl,
   login as requestLogin,
   logout as requestLogout,
   me,
   restoreSession,
+  touchActivity,
   User
 } from "../services/api";
 
 type Auth = {
   user: User | null;
   loading: boolean;
+  /** Notify the context that the user interacted — resets the idle timer. */
+  recordActivity: () => void;
   login: (code: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
 const Context = createContext<Auth | null>(null);
 
+/** Poll interval for the idle-timer check (ms). */
+const POLL_MS = 30_000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Idle-timeout bookkeeping (refs so they don't cause re-renders)
+  const timeoutMinutesRef = useRef<number>(10);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  const doLogout = async () => {
+    stopIdleTimer();
+    await requestLogout();
+    await clearActivity();
+    setUser(null);
+  };
+
+  const checkIdle = async () => {
+    const last = await getLastActive();
+    if (last === null) return; // no activity recorded yet — grace period
+    const idleMs = Date.now() - last;
+    const limitMs = timeoutMinutesRef.current * 60 * 1000;
+    if (idleMs >= limitMs) {
+      await doLogout();
+    }
+  };
+
+  const startIdleTimer = () => {
+    if (pollRef.current) return; // already running
+    pollRef.current = setInterval(checkIdle, POLL_MS);
+  };
+
+  const stopIdleTimer = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  const recordActivity = () => {
+    // Fire-and-forget — write timestamp to SecureStore
+    touchActivity().catch(() => {});
+  };
+
+  // ─── Boot: restore session + wire up idle timer ────────────────────────────
 
   useEffect(() => {
     (async () => {
@@ -59,6 +112,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             // For network errors / timeouts / offline mode, keep the cached user shown.
           }
+
+          // Fetch the admin-configured timeout
+          const minutes = await getSessionTimeout().catch(() => 10);
+          timeoutMinutesRef.current = minutes;
+
+          // Kick off idle timer if a user is now set
+          startIdleTimer();
+          recordActivity();
         }
       } catch {
         // Storage reading error — don't crash the app.
@@ -66,15 +127,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     })();
+
+    // AppState listener: when app comes back to foreground, immediately check
+    const sub = AppState.addEventListener("change", (nextState: AppStateStatus) => {
+      if (appStateRef.current.match(/inactive|background/) && nextState === "active") {
+        // App foregrounded — check idle immediately, then restart poll
+        checkIdle();
+        // Refresh timeout setting in background (admin may have changed it)
+        getSessionTimeout()
+          .then((m) => { timeoutMinutesRef.current = m; })
+          .catch(() => {});
+      }
+      appStateRef.current = nextState;
+    });
+
+    return () => {
+      stopIdleTimer();
+      sub.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = async (code: string, password: string) => setUser(await requestLogin(code, password));
-  const logout = async () => {
-    await requestLogout();
-    setUser(null);
+  // Start/stop timer whenever login state changes
+  useEffect(() => {
+    if (user) {
+      // Fetch latest timeout when user logs in
+      getSessionTimeout()
+        .then((m) => { timeoutMinutesRef.current = m; })
+        .catch(() => {});
+      startIdleTimer();
+      recordActivity();
+    } else {
+      stopIdleTimer();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!user]);
+
+  // ─── Public auth actions ───────────────────────────────────────────────────
+
+  const login = async (code: string, password: string) => {
+    const loggedInUser = await requestLogin(code, password);
+    setUser(loggedInUser);
   };
 
-  return <Context.Provider value={{ user, loading, login, logout }}>{children}</Context.Provider>;
+  const logout = async () => {
+    await doLogout();
+  };
+
+  return (
+    <Context.Provider value={{ user, loading, recordActivity, login, logout }}>
+      {children}
+    </Context.Provider>
+  );
 }
 
 export function useAuth() {

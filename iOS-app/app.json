@@ -2,13 +2,13 @@
   "expo": {
     "name": "Lams IMS",
     "slug": "lams-ims",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
 
     "ios": {
-      "buildNumber": "1",
+      "buildNumber": "2",
       "bundleIdentifier": "com.lams.inventoryscanner",
       "supportsTablet": true,
       "infoPlist": {
